@@ -1,0 +1,54 @@
+/* Dark theme (default) */
+:root {
+  --bg-primary: #151525;
+  --bg-secondary: #1A1A35;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --accent: #10b981;
+  --accent-light: rgba(16, 185, 129, 0.1);
+  --accent-hover: rgba(16, 185, 129, 0.2);
+}
+
+/* Light theme */
+body.light-mode {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --accent: #059669;
+  --accent-light: rgba(5, 150, 105, 0.1);
+  --accent-hover: rgba(5, 150, 105, 0.2);
+}
+
+/* Apply variables */
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.bg-accent {
+  background-color: var(--accent);
+}
+
+.bg-accent-light {
+  background-color: var(--accent-light);
+}
+
+.hover-accent:hover {
+  background-color: var(--accent-hover);
+}
