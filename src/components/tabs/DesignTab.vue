@@ -16,12 +16,6 @@
           >
             {{ sub.name }}
           </button>
-          <div 
-            v-if="submitted[sub.id]" 
-            class="absolute top-1 left-[calc(100%+0.5rem)] px-2 py-0.5 text-xs bg-emerald-500 text-white rounded-full"
-          >
-            Done
-          </div>
         </div>
       </div>
 
@@ -54,7 +48,7 @@
             </p>
             <div class="grid grid-cols-2 gap-4">
               <div 
-                v-for="(choice, cIndex) in currentSlide.choices" 
+                v-for="choice in currentSlide.choices" 
                 :key="choice.value"
                 class="border rounded p-4 flex flex-col items-center transition hover:shadow-lg cursor-pointer relative hover:bg-gray-50 hover:border-emerald-300 group"
                 :class="{
@@ -121,7 +115,7 @@
             
             <transition-group name="fade" tag="div" class="space-y-6">
               <div 
-                v-for="(slide, index) in questions[currentSubTab]" 
+                v-for="slide in questions[currentSubTab]" 
                 :key="slide.question"
                 class="bg-white border border-gray-200 p-4 rounded shadow-sm transition hover:shadow-md"
               >
@@ -253,6 +247,8 @@ const submitted = reactive({
   banners: false
 })
 
+let isInitialized = false
+
 const currentSlide = computed(() => questions[currentSubTab.value][currentSlideIndex.value])
 const currentKey = computed(() => currentSlide.value.keys[0])
 
@@ -300,21 +296,27 @@ const loadSubmittedAnswers = async (type) => {
 }
 
 onMounted(async () => {
-  const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
-  const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
-  const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
+  if (!isInitialized) {
+    const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
+    const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
+    const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
 
-  submitted.ui = (uiVal === 'true')
-  submitted.logo = (logoVal === 'true')
-  submitted.banners = (bannersVal === 'true')
+    submitted.ui = (uiVal === 'true')
+    submitted.logo = (logoVal === 'true')
+    submitted.banners = (bannersVal === 'true')
 
-  for (const sub of subTabs) {
-    if (submitted[sub.id]) {
-      await loadSubmittedAnswers(sub.id)
+    for (const sub of subTabs) {
+      if (submitted[sub.id]) {
+        await loadSubmittedAnswers(sub.id)
+      }
     }
-  }
 
-  dataLoaded.value = true
+    dataLoaded.value = true
+    isInitialized = true
+  } else {
+    // Data was already loaded before, no need to re-fetch
+    dataLoaded.value = true
+  }
 })
 
 const switchSubTab = (id) => {
