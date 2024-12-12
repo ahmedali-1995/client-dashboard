@@ -51,3 +51,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ success: false, error: 'Proxy Error' });
   }
 }
+console.log('Proxy request:', req.method, req.query, req.body);
+console.log('Target URL:', targetUrl);
