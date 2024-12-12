@@ -243,7 +243,6 @@
               {{ themeStore.isDark ? 'Light Mode' : 'Dark Mode' }}
             </span>
           </button>
-        </nav>
 
         <div class="mt-8 p-4">
           <a 
