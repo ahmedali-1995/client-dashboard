@@ -1,10 +1,9 @@
+// appsScriptService.js
 import axios from 'axios';
 
 class AppsScriptService {
   constructor() {
-    // Instead of the Apps Script URL, use the proxy URL:
-    this.scriptUrl = 'https://client-dashboard-nine.vercel.app/api/proxy'; 
-    // Replace with your actual Vercel domain
+    this.scriptUrl = 'https://your-vercel-app.vercel.app/api/proxy'; 
     this.debug = true;
   }
 
