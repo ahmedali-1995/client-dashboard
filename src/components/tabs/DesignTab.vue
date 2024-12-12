@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'  // <- Make sure onMounted is included
 import { useAuthStore } from '@/stores/auth'
 import { appsScriptService } from '@/services/appsScriptService'
 import { useDesignStore } from '@/stores/designStore'
