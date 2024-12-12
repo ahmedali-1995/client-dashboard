@@ -13,7 +13,16 @@ export const useAuthStore = defineStore('auth', {
         
         if (result.success) {
           this.user = result.user
-          localStorage.setItem('user', JSON.stringify(result.user))
+          // Save user data with expiration
+          const expirationDate = new Date()
+          expirationDate.setDate(expirationDate.getDate() + 7) // 7 days from now
+          
+          const userData = {
+            user: result.user,
+            expiration: expirationDate.getTime()
+          }
+          
+          localStorage.setItem('userData', JSON.stringify(userData))
           return { success: true, user: result.user }
         } else {
           return { success: false, error: result.error || 'Invalid credentials' }
@@ -26,16 +35,22 @@ export const useAuthStore = defineStore('auth', {
     
     logout() {
       this.user = null
-      localStorage.removeItem('user')
+      localStorage.removeItem('userData')
     },
     
     initAuth() {
-      const userStr = localStorage.getItem('user')
-      if (userStr) {
+      const userDataStr = localStorage.getItem('userData')
+      if (userDataStr) {
         try {
-          const user = JSON.parse(userStr)
-          if (user && user.username) {
-            this.user = user
+          const userData = JSON.parse(userDataStr)
+          const now = new Date().getTime()
+          
+          // Check if the stored data has expired
+          if (userData.expiration && now < userData.expiration) {
+            this.user = userData.user
+          } else {
+            // Clear expired data
+            this.logout()
           }
         } catch (error) {
           console.error('[AuthStore] Error parsing stored user:', error)

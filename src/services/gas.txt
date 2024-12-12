@@ -1,0 +1,184 @@
+/**
+ * Main entry point for GET requests.
+ * Handles different actions: validate, getTasks, and getData (default).
+ *
+ * @param {Object} e - The event parameter containing request parameters.
+ * @return {ContentService.TextOutput} JSON response.
+ */
+function doGet(e) {
+  try {
+    // Get parameters from the request
+    var username = e.parameter.username;
+    var password = e.parameter.password;
+    var action = e.parameter.action || 'getData'; // Default action is getData
+
+    // If no username is provided, return a test response
+    if (!username) {
+      return createJsonResponse({
+        success: true,
+        message: 'Google Apps Script is working'
+      });
+    }
+
+    // Handle different actions based on the 'action' parameter
+    switch (action) {
+      case 'validate':
+        return handleAuthentication(username, password);
+      case 'getTasks':
+        return handleGetTasks(username);
+      default:
+        return handleGetUserData(username);
+    }
+
+  } catch (error) {
+    // Handle any unexpected errors
+    return createJsonResponse({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+/**
+ * Handles user authentication.
+ *
+ * @param {string} username - The username to authenticate.
+ * @param {string} password - The password for authentication.
+ * @return {ContentService.TextOutput} JSON response indicating success or failure.
+ */
+function handleAuthentication(username, password) {
+  // ID of the spreadsheet containing user credentials
+  var loginSheetId = '1pgv3SJR-CzcgB_dLtJlwQn3pxJy-h9aTbqbp_j1u8t8'; // TODO: Replace with your actual login sheet ID
+  var loginSheet = SpreadsheetApp.openById(loginSheetId).getSheetByName('morbeh - users login');
+
+  if (!loginSheet) {
+    throw new Error('Login sheet not found');
+  }
+
+  // Get all users data
+  var data = loginSheet.getDataRange().getValues();
+  var headers = data[0];
+
+  // Find user by username (case-insensitive)
+  var userRow = null;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString().toLowerCase() === username.toLowerCase()) {
+      userRow = data[i];
+      break;
+    }
+  }
+
+  // Validate user credentials
+  if (!userRow || userRow[1] !== password) {
+    return createJsonResponse({
+      success: false,
+      error: 'Invalid username or password'
+    });
+  }
+
+  // Successful authentication
+  return createJsonResponse({
+    success: true,
+    user: {
+      username: userRow[0]
+      // Add more user details here if needed
+    }
+  });
+}
+
+/**
+ * Retrieves user-specific data from the 'Overview' sheet.
+ *
+ * @param {string} username - The username whose data is to be retrieved.
+ * @return {ContentService.TextOutput} JSON response with user data.
+ */
+function handleGetUserData(username) {
+  // ID of the folder where all client sheets are stored
+  var folderId = '1bRskb6nRG2L22bbK4_pvBFahYKJa_NQ-'; // Replace with your actual folder ID
+
+  // Search for the sheet by name in the folder
+  var files = DriveApp.getFolderById(folderId).getFilesByName(username);
+
+  if (!files.hasNext()) {
+    throw new Error('No sheet found for user: ' + username);
+  }
+
+  var sheet = SpreadsheetApp.openById(files.next().getId());
+  var overviewSheet = sheet.getSheetByName('Overview');
+
+  if (!overviewSheet) {
+    throw new Error('Overview sheet not found');
+  }
+
+  // Get data from the Overview sheet
+  var data = overviewSheet.getDataRange().getValues();
+  var headers = data[0];
+  var values = data[1]; // Assuming the first row is headers and the second row contains user data
+
+  // Create an object with header-value pairs
+  var result = {};
+  headers.forEach(function(header, index) {
+    result[header] = values[index];
+  });
+
+  return createJsonResponse({
+    success: true,
+    data: result
+  });
+}
+
+/**
+ * Retrieves tasks associated with the user from the 'tasks' sheet.
+ *
+ * @param {string} username - The username whose tasks are to be retrieved.
+ * @return {ContentService.TextOutput} JSON response with tasks data.
+ */
+function handleGetTasks(username) {
+  // ID of the folder where all client sheets are stored
+  var folderId = '1bRskb6nRG2L22bbK4_pvBFahYKJa_NQ-'; // Replace with your actual folder ID
+
+  // Search for the sheet by name in the folder
+  var files = DriveApp.getFolderById(folderId).getFilesByName(username);
+
+  if (!files.hasNext()) {
+    throw new Error('No sheet found for user: ' + username);
+  }
+
+  var sheet = SpreadsheetApp.openById(files.next().getId());
+  var tasksSheet = sheet.getSheetByName('tasks');
+
+  if (!tasksSheet) {
+    throw new Error('Tasks sheet not found');
+  }
+
+  // Get data from the Tasks sheet
+  var data = tasksSheet.getDataRange().getValues();
+  var headers = data[0];
+
+  // Convert data to an array of task objects
+  var tasks = [];
+  for (var i = 1; i < data.length; i++) { // Start from 1 to skip headers
+    var task = {};
+    headers.forEach(function(header, index) {
+      task[header] = data[i][index];
+    });
+    tasks.push(task);
+  }
+
+  return createJsonResponse({
+    success: true,
+    data: tasks
+  });
+}
+
+/**
+ * Utility function to create a JSON response.
+ *
+ * @param {Object} obj - The object to be converted to JSON.
+ * @return {ContentService.TextOutput} JSON response.
+ */
+function createJsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}

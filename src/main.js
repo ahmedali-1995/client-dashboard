@@ -6,6 +6,7 @@ import router from './router'
 import './style.css'
 import './assets/css/theme.css'
 import { googleService } from './services/googleService'
+import { useAuthStore } from './stores/auth'
 
 // Create the app instance
 const app = createApp(App)
@@ -18,12 +19,12 @@ pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.use(router)
 
+// Initialize auth store
+const authStore = useAuthStore(pinia)
+authStore.initAuth()
 
 // Make service available globally
 app.config.globalProperties.$googleService = googleService
-
-// Also expose it on window for debugging
-// window.$googleService = googleService
 
 // Mount the app
 app.mount('#app')
