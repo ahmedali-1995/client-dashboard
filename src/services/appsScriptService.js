@@ -3,7 +3,7 @@ import axios from 'axios';
 
 class AppsScriptService {
   constructor() {
-    this.scriptUrl = 'https://your-vercel-app.vercel.app/api/proxy'; 
+    this.scriptUrl = 'https://client-dashboard-nine.vercel.app/api/proxy'; 
     this.debug = true;
   }
 
