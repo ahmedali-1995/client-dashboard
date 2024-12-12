@@ -1,4 +1,4 @@
-<!-- Dashboard.vue (Only the tabs array and component import changed to include design tab) -->
+<!-- Dashboard.vue -->
 <template>
   <div class="flex h-screen" :class="themeStore.isDark ? 'bg-[#0F0F1E]' : 'bg-gray-50'">
     <div class="w-64 lg:w-52 text-white md:block hidden relative" 
@@ -14,7 +14,9 @@
             alt="MORBH" 
             class="h-12 lg:h-16 w-auto"
           />
-          <p class="text-sm lg:text-xs font-changa" :class="themeStore.isDark ? 'text-white' : 'text-emerald-400'">مع مربح أنت الرابح</p>
+          <p class="text-sm lg:text-xs font-changa" :class="themeStore.isDark ? 'text-white' : 'text-emerald-400'">
+            مع مربح أنت الرابح
+          </p>
         </div>
       </div>
 
@@ -42,20 +44,19 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
             </svg>
             <svg v-if="tab.id === 'tasks'" class="w-5 h-5 lg:w-4.5 lg:h-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-2m0-4h2m0 4h2m-10 0h2M7 9h10" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2m0-4h2m0 4h2m-10 0h2M7 9h10" />
             </svg>
             <svg v-if="tab.id === 'profile'" class="w-5 h-5 lg:w-4.5 lg:h-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
             <svg v-if="tab.id === 'design'" class="w-5 h-5 lg:w-4.5 lg:h-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6M9 12h2.25M9 15.75h6M7.5 21.75h9a1.5 1.5 0 001.5-1.5v-18A1.5 1.5 0 0016.5.75h-9a1.5 1.5 0 00-1.5 1.5v18a1.5 1.5 0 001.5 1.5z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6M9 12h2.25M9 15.75h6M7.5 21.75h9a1.5 1.5 0 0 0 1.5-1.5v-18A1.5 1.5 0 0 0 16.5.75h-9a1.5 1.5 0 0 0-1.5 1.5v18a1.5 1.5 0 0 0 1.5 1.5z" />
             </svg>
           </div>
           <span class="text-sm lg:text-xs">{{ tab.name }}</span>
         </button>
       </nav>
 
-      <!-- Rest of the sidebar and logout unchanged -->
       <nav class="p-4 lg:p-2 space-y-2 lg:space-y-1">
         <button 
           @click="themeStore.toggleTheme"
@@ -109,7 +110,7 @@
           <div class="w-8 lg:w-6 h-8 lg:h-6 mr-3 rounded-lg flex items-center justify-center"
             :class="themeStore.isDark ? 'bg-[#b43131]' : 'bg-red-600/90'">
             <svg class="w-5 h-5 lg:w-4.5 lg:h-4.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
             </svg>
           </div>
           <span class="text-sm lg:text-xs text-white">Logout</span>
@@ -179,7 +180,9 @@
               alt="MORBH" 
               class="h-20 w-auto"
             />
-            <p class="text-emerald-400 text-sm font-changa" :class="themeStore.isDark ? 'text-white' : 'text-emerald-400'">مع مربح أنت الرابح</p>
+            <p class="text-emerald-400 text-sm font-changa" :class="themeStore.isDark ? 'text-white' : 'text-emerald-400'">
+              مع مربح أنت الرابح
+            </p>
           </div>
         </div>
 
@@ -240,6 +243,7 @@
               {{ themeStore.isDark ? 'Light Mode' : 'Dark Mode' }}
             </span>
           </button>
+        </nav>
 
         <div class="mt-8 p-4">
           <a 
@@ -274,7 +278,6 @@
       </div>
     </div>
 
-    <!-- Main Content -->
     <div class="flex-1 overflow-auto pt-16 md:pt-0">
       <div class="p-4">
         <div v-if="loading" class="flex items-center justify-center h-full">
@@ -375,7 +378,11 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
