@@ -5,25 +5,28 @@
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
     </div>
     <div v-else>
-      <h2 class="text-2xl font-semibold mb-4">Design Preferences</h2>
-
       <div class="flex space-x-4 border-b pb-3 mb-8">
         <button 
           v-for="sub in subTabs" 
           :key="sub.id" 
           @click="switchSubTab(sub.id)"
-          class="px-4 py-2 text-sm font-semibold transition-colors"
+          class="px-4 py-2 text-sm font-semibold transition-colors relative group"
           :class="currentSubTab === sub.id 
             ? 'border-b-2 border-emerald-500 text-emerald-500' 
             : 'text-gray-600 hover:text-emerald-500'"
         >
           {{ sub.name }}
+          <div 
+            v-if="submitted[sub.id]" 
+            class="absolute top-0 right-0 h-2 w-2 bg-emerald-500 rounded-full translate-x-1/2 -translate-y-1/2"
+            title="Already submitted"
+          ></div>
         </button>
       </div>
 
       <!-- Form (if not submitted) -->
       <div v-if="!submitted[currentSubTab]" class="space-y-6">
-        <!-- Progress Bar -->
+        <!-- Progress Indicator -->
         <div class="flex items-center justify-between text-sm font-medium text-gray-600">
           <div>{{ currentSlideIndex + 1 }} / 4</div>
           <div class="relative w-1/2 h-2 bg-gray-200 rounded-full">
@@ -35,7 +38,7 @@
         </div>
 
         <!-- Question Card -->
-        <div class="border p-6 rounded bg-white shadow transition-all">
+        <div class="border p-6 rounded bg-white shadow transition-all relative overflow-hidden">
           <h3 class="text-lg font-semibold mb-4">
             {{ currentSlide.question }}
           </h3>
@@ -46,14 +49,14 @@
             <div 
               v-for="(choice, cIndex) in currentSlide.choices" 
               :key="cIndex"
-              class="border rounded p-4 flex flex-col items-center transition hover:shadow-lg cursor-pointer relative"
+              class="border rounded p-4 flex flex-col items-center transition hover:shadow-lg cursor-pointer relative hover:bg-gray-50 hover:border-emerald-300"
               :class="{
-                'border-emerald-500 bg-emerald-50': formData[currentSubTab][currentKey] === choice.value,
-                'border-gray-200 bg-white hover:bg-gray-50': formData[currentSubTab][currentKey] !== choice.value
+                'border-emerald-500 bg-emerald-50 scale-105': formData[currentSubTab][currentKey] === choice.value,
+                'border-gray-200': formData[currentSubTab][currentKey] !== choice.value
               }"
               @click="selectChoice(currentKey, choice.value)"
             >
-              <img :src="choice.image" alt="Choice Image" class="h-24 w-auto mb-2 object-cover rounded" />
+              <img :src="choice.image" alt="Choice Image" class="h-24 w-auto mb-2 object-cover rounded transition-transform group-hover:scale-105" />
               <p class="font-medium text-center text-sm text-gray-700">{{ choice.label }}</p>
               <div 
                 v-if="formData[currentSubTab][currentKey] === choice.value" 
@@ -95,30 +98,47 @@
 
       <!-- Preview (if submitted) -->
       <div v-else class="space-y-6">
-        <div class="bg-emerald-50 border border-emerald-200 rounded p-6 shadow">
+        <div class="bg-emerald-50 border border-emerald-200 rounded p-6 shadow relative">
           <h3 class="text-xl font-semibold mb-2 text-emerald-700">Submission Preview ({{ currentSubTab }})</h3>
           <p class="text-gray-600 text-sm mb-4">
             Below are the options you selected. This form cannot be edited again without code changes.
           </p>
+
+          <!-- Optional: Show submission time if desired -->
+          <div v-if="submissionTime[currentSubTab]" class="text-sm text-gray-500 mb-4">
+            Submitted on: {{ submissionTime[currentSubTab] }}
+          </div>
           
           <div class="space-y-6">
-            <div 
-              v-for="(slide, index) in questions[currentSubTab]" 
-              :key="index" 
-              class="bg-white border border-gray-200 p-4 rounded shadow-sm"
-            >
-              <h4 class="font-medium mb-2 text-gray-800">
-                {{ slide.question }}
-              </h4>
-              <div class="flex items-start space-x-4">
-                <div v-for="choice in slide.choices" :key="choice.value">
-                  <div v-if="formData[currentSubTab][slide.keys[0]] === choice.value" class="flex items-center space-x-3">
-                    <img :src="choice.image" alt="Chosen Image" class="h-16 w-auto object-cover rounded border border-gray-200"/>
-                    <p class="text-sm font-medium text-gray-700">{{ choice.label }}</p>
+            <transition-group name="fade" tag="div">
+              <div 
+                v-for="(slide, index) in questions[currentSubTab]" 
+                :key="index" 
+                class="bg-white border border-gray-200 p-4 rounded shadow-sm"
+              >
+                <h4 class="font-medium mb-2 text-gray-800">
+                  {{ slide.question }}
+                </h4>
+                <div class="flex items-start space-x-4">
+                  <div v-for="choice in slide.choices" :key="choice.value">
+                    <div v-if="formData[currentSubTab][slide.keys[0]] === choice.value" class="flex items-center space-x-3">
+                      <img :src="choice.image" alt="Chosen Image" class="h-16 w-auto object-cover rounded border border-gray-200"/>
+                      <p class="text-sm font-medium text-gray-700">{{ choice.label }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </transition-group>
+          </div>
+
+          <div class="mt-6 flex space-x-3">
+            <button 
+              @click="printPreview"
+              class="px-4 py-2 bg-white border border-gray-300 text-sm text-gray-700 rounded hover:bg-gray-100"
+              title="Print your chosen preferences"
+            >
+              Print
+            </button>
           </div>
         </div>
 
@@ -147,6 +167,11 @@ const props = defineProps({
 })
 
 const dataLoaded = ref(false)
+const submissionTime = reactive({
+  ui: null,
+  logo: null,
+  banners: null
+})
 
 const subTabs = [
   { id: 'ui', name: 'UI' },
@@ -237,6 +262,8 @@ const submitForm = async (type) => {
   const response = await appsScriptService.submitDesignData(username, type, dataToSubmit)
   if (response.success) {
     submitted[type] = true
+    // Record submission time if needed
+    submissionTime[type] = new Date().toLocaleString()
   } else {
     alert('Error submitting form: ' + response.error)
   }
@@ -252,6 +279,9 @@ const loadSubmittedAnswers = async (type) => {
         formData[type][key] = response.data[key]
       }
     })
+    // Optionally set a fixed submission time on load if you stored it somewhere.
+    // For now, just set it when we fetch answers:
+    submissionTime[type] = new Date().toLocaleString()
   }
 }
 
@@ -277,18 +307,26 @@ const switchSubTab = (id) => {
   currentSubTab.value = id
   currentSlideIndex.value = 0
 }
+
+const printPreview = () => {
+  window.print()
+}
 </script>
 
 <style scoped>
 .animate-spin {
   animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
 .hover\:shadow-lg:hover {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
