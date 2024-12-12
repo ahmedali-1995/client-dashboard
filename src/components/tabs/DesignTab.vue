@@ -110,6 +110,13 @@ import { appsScriptService } from '@/services/appsScriptService'
 
 const authStore = useAuthStore()
 
+const props = defineProps({
+  userData: {
+    type: Object,
+    required: true
+  }
+})
+
 const subTabs = [
   { id: 'ui', name: 'UI' },
   { id: 'logo', name: 'Logo' },
@@ -205,19 +212,13 @@ const submitForm = async (type) => {
 }
 
 onMounted(() => {
-  // userData passed as prop from Dashboard.vue
-  // userData contains ui_submitted, logo_submitted, banners_submitted
-  // convert them from string to boolean
-  submitted.ui = (props.userData.ui_submitted === 'true')
-  submitted.logo = (props.userData.logo_submitted === 'true')
-  submitted.banners = (props.userData.banners_submitted === 'true')
-})
+  const uiSubmitted = (props.userData.ui_submitted || '').toLowerCase() === 'true'
+  const logoSubmitted = (props.userData.logo_submitted || '').toLowerCase() === 'true'
+  const bannersSubmitted = (props.userData.banners_submitted || '').toLowerCase() === 'true'
 
-const props = defineProps({
-  userData: {
-    type: Object,
-    required: true
-  }
+  submitted.ui = uiSubmitted
+  submitted.logo = logoSubmitted
+  submitted.banners = bannersSubmitted
 })
 
 const switchSubTab = (id) => {
