@@ -1,101 +1,74 @@
-import axios from 'axios';
+// pages/api/proxy.js
+import fetch from 'node-fetch';
 
-class AppsScriptService {
-  constructor() {
-    // Instead of the Apps Script URL, use the proxy URL:
-    this.scriptUrl = 'https://client-dashboard-nine.vercel.app/api/proxy'; 
-    // Replace with your actual Vercel domain
-    this.debug = true;
+export default async function handler(req, res) {
+  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxc1J_oVKZD07d34Qr9tiV-fppbTIeKqkcR46SZWZmSIR5oDLJpeOEtzpoektZr8ASpiw/exec'; 
+  // Replace YOUR_SCRIPT_ID with your actual deployed Apps Script ID
+
+  // Handle query parameters for GET requests
+  const { query } = req;
+  const params = new URLSearchParams(query).toString();
+  const targetUrl = params ? `${appsScriptUrl}?${params}` : appsScriptUrl;
+
+  // Add logging here
+  console.log('Proxy request method:', req.method);
+  console.log('Query params:', req.query);
+  console.log('Request body (if POST):', req.body);
+  console.log('Target URL:', targetUrl);
+
+  if (req.method === 'OPTIONS') {
+    // Handle preflight requests
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
   }
 
-  async getUserData(username) {
-    try {
-      if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`);
-      const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          t: new Date().getTime()
-        },
-        headers: { 'Accept': 'application/json' }
+  try {
+    let response;
+    if (req.method === 'GET') {
+      response = await fetch(targetUrl, { method: 'GET' });
+    } else if (req.method === 'POST') {
+      // Forward POST body to Apps Script
+      const body = JSON.stringify(req.body);
+      console.log('Forwarding POST body to Apps Script:', body);
+      response = await fetch(appsScriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body
       });
-
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to fetch data');
-      }
-      return { success: true, data: response.data.data };
-    } catch (error) {
-      console.error('[AppsScriptService] Error:', error);
-      return { success: false, error: error.message };
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
-  }
 
-  async getTasks(username) {
+    // Check the raw response before parsing JSON
+    const text = await response.text();
+    console.log('Raw response from Apps Script:', text);
+    
+    let data;
     try {
-      if (this.debug) console.log(`[AppsScriptService] Fetching tasks for username: ${username}`);
-      const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          action: 'getTasks',
-          t: new Date().getTime()
-        },
-        headers: { 'Accept': 'application/json' }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('[AppsScriptService] Error fetching tasks:', error);
-      throw error;
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error('Failed to parse JSON:', err, 'Response text:', text);
+      // Set CORS headers
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      return res.status(500).json({ success: false, error: 'Invalid JSON response' });
     }
-  }
 
-  async testConnection() {
-    try {
-      if (this.debug) console.log('[AppsScriptService] Testing connection...');
-      const response = await axios.get(this.scriptUrl, {
-        params: { t: new Date().getTime() },
-        headers: { 'Accept': 'application/json' }
-      });
-      return { success: true, message: response.data.message || 'Connection successful' };
-    } catch (error) {
-      console.error('[AppsScriptService] Test connection error:', error);
-      return { success: false, error: error.message };
-    }
-  }
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  async validateUser(username, password) {
-    try {
-      if (this.debug) console.log('[AppsScriptService] Validating user:', username);
-      const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          password,
-          action: 'validate'
-        },
-        headers: { 'Accept': 'application/json' }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('[AppsScriptService] Validate user error:', error);
-      throw error;
-    }
-  }
-
-  async submitDesignData(username, designType, formData) {
-    try {
-      if (this.debug) console.log(`[AppsScriptService] Submitting ${designType} design data for ${username}`);
-      const response = await axios.post(this.scriptUrl, {
-        username,
-        action: 'submitDesignData',
-        designType,
-        formData
-      }, {
-        headers: { 'Accept': 'application/json' }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('[AppsScriptService] submitDesignData error:', error);
-      return { success: false, error: error.message };
-    }
+    return res.status(response.status).json(data);
+  } catch (error) {
+    console.error(error);
+    // Set CORS headers on error response
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(500).json({ success: false, error: 'Proxy Error' });
   }
 }
-
-export const appsScriptService = new AppsScriptService();
