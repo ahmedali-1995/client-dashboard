@@ -305,6 +305,7 @@ import { useAuthStore } from '../stores/auth'
 import { useTasksStore } from '../stores/tasks'
 import { appsScriptService } from '../services/appsScriptService'
 import { useThemeStore } from '@/stores/themeStore'
+import { useDesignStore } from '@/stores/designStore'
 
 import OverviewTab from '../components/tabs/OverviewTab.vue'
 import SearchPerformanceTab from '../components/tabs/SearchPerformanceTab.vue'
@@ -360,6 +361,12 @@ const handleLogout = () => {
   authStore.logout()
   router.push('/client-login')
 }
+  onMounted(async () => {
+  const username = authStore.user?.username
+  if (username && !designStore.dataLoaded) {
+    await designStore.fetchAllSubmittedAnswers(username)
+  }
+})
 
 onMounted(async () => {
   authStore.initAuth()
