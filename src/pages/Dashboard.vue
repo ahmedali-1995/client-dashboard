@@ -323,6 +323,7 @@ const userData = ref(null)
 const currentTab = ref('overview')
 const showMobileMenu = ref(false)
 const themeStore = useThemeStore()
+const designStore = useDesignStore()
 
 const tabs = [
   { id: 'overview', name: 'Overview', component: OverviewTab },
