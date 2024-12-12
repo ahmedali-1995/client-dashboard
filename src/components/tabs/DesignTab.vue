@@ -10,13 +10,8 @@
           v-for="sub in subTabs" 
           :key="sub.id" 
           @click="switchSubTab(sub.id)"
-          :disabled="submitted[sub.id]"
-          :class="[
-            'px-4 py-2 text-sm font-semibold transition-colors',
-            currentSubTab === sub.id 
-              ? 'border-b-2 border-emerald-500 text-emerald-500' 
-              : 'text-gray-600 hover:text-emerald-500'
-          ]"
+          class="px-4 py-2 text-sm font-semibold transition-colors"
+          :class="currentSubTab === sub.id ? 'border-b-2 border-emerald-500 text-emerald-500' : 'text-gray-600 hover:text-emerald-500'"
         >
           {{ sub.name }}
         </button>
@@ -109,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { appsScriptService } from '@/services/appsScriptService'
 
@@ -218,8 +213,25 @@ const submitForm = async (type) => {
   }
 }
 
-onMounted(() => {
-  // Normalize the values from userData
+// This method should call a new endpoint, e.g. appsScriptService.getSubmittedAnswers(username, designType),
+// that returns the previously chosen answers. You must implement this in Apps Script and service.
+const loadSubmittedAnswers = async (type) => {
+  const username = authStore.user?.username
+  if (!username) return
+  const response = await appsScriptService.getSubmittedAnswers(username, type)
+  if (response.success && response.data) {
+    // response.data should be an object like { ui_slide1: 'ui_modern', ui_slide2: 'ui_minimal', ... }
+    Object.keys(response.data).forEach(key => {
+      if (formData[type].hasOwnProperty(key)) {
+        formData[type][key] = response.data[key]
+      }
+    })
+  }
+}
+
+onMounted(async () => {
+  console.log('DesignTab userData:', props.userData)
+
   const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
   const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
   const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
@@ -228,15 +240,14 @@ onMounted(() => {
   submitted.logo = (logoVal === 'true')
   submitted.banners = (bannersVal === 'true')
 
-  dataLoaded.value = true
-})
+  // If already submitted, load previously chosen answers from the sheet
+  for (const sub of subTabs) {
+    if (submitted[sub.id]) {
+      await loadSubmittedAnswers(sub.id)
+    }
+  }
 
-watch(() => currentSubTab.value, () => {
-  // Re-check submitted states to ensure buttons update properly
-  // This may help refresh the UI state if switching tabs was causing issues
-  submitted.ui = submitted.ui
-  submitted.logo = submitted.logo
-  submitted.banners = submitted.banners
+  dataLoaded.value = true
 })
 
 const switchSubTab = (id) => {
