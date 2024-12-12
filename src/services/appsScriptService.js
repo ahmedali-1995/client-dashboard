@@ -11,10 +11,7 @@ class AppsScriptService {
     try {
       if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`);
       const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          t: new Date().getTime()
-        },
+        params: { username, t: new Date().getTime() },
         headers: { 'Accept': 'application/json' }
       });
 
@@ -32,11 +29,7 @@ class AppsScriptService {
     try {
       if (this.debug) console.log(`[AppsScriptService] Fetching tasks for username: ${username}`);
       const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          action: 'getTasks',
-          t: new Date().getTime()
-        },
+        params: { username, action: 'getTasks', t: new Date().getTime() },
         headers: { 'Accept': 'application/json' }
       });
       return response.data;
@@ -64,11 +57,7 @@ class AppsScriptService {
     try {
       if (this.debug) console.log('[AppsScriptService] Validating user:', username);
       const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          password,
-          action: 'validate'
-        },
+        params: { username, password, action: 'validate' },
         headers: { 'Accept': 'application/json' }
       });
       return response.data;
@@ -92,6 +81,20 @@ class AppsScriptService {
       return response.data;
     } catch (error) {
       console.error('[AppsScriptService] submitDesignData error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async getSubmittedAnswers(username, designType) {
+    try {
+      if (this.debug) console.log(`[AppsScriptService] Getting submitted answers for ${username}, type: ${designType}`);
+      const response = await axios.get(this.scriptUrl, {
+        params: { username, action: 'getSubmittedAnswers', designType, t: new Date().getTime() },
+        headers: { 'Accept': 'application/json' }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('[AppsScriptService] getSubmittedAnswers error:', error);
       return { success: false, error: error.message };
     }
   }
