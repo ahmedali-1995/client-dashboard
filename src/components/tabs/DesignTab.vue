@@ -219,15 +219,11 @@ const submitForm = async (type) => {
 }
 
 onMounted(() => {
-  // Ensure userData is available and log it to verify
   console.log('DesignTab userData:', props.userData)
 
-  // Check exactly what the sheet returns
-  // Sometimes Sheets returns "TRUE" or "True"
-  // Normalize the value:
-  const uiVal = (props.userData.ui_submitted || '').trim().toLowerCase()
-  const logoVal = (props.userData.logo_submitted || '').trim().toLowerCase()
-  const bannersVal = (props.userData.banners_submitted || '').trim().toLowerCase()
+  const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
+  const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
+  const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
 
   submitted.ui = (uiVal === 'true')
   submitted.logo = (logoVal === 'true')
