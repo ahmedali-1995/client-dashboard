@@ -10,7 +10,10 @@ export default async function handler(req, res) {
   const params = new URLSearchParams(query).toString();
   const targetUrl = params ? `${appsScriptUrl}?${params}` : appsScriptUrl;
 
-  console.log('Proxy request:', req.method, req.query, req.body);
+  // Add logging here
+  console.log('Proxy request method:', req.method);
+  console.log('Query params:', req.query);
+  console.log('Request body (if POST):', req.body);
   console.log('Target URL:', targetUrl);
 
   if (req.method === 'OPTIONS') {
