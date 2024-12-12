@@ -1,100 +1,105 @@
 <!-- DesignTab.vue -->
 <template>
   <div class="max-w-3xl mx-auto space-y-8">
-    <div class="flex space-x-4 border-b mb-4 pb-2">
-      <button 
-        v-for="sub in subTabs" 
-        :key="sub.id" 
-        @click="switchSubTab(sub.id)"
-        :disabled="submitted[sub.id]"
-        :class="[
-          'px-4 py-2 text-sm font-semibold transition-colors',
-          currentSubTab === sub.id 
-            ? 'border-b-2 border-emerald-500 text-emerald-500' 
-            : 'text-gray-600 hover:text-emerald-500'
-        ]"
-      >
-        {{ sub.name }}
-      </button>
+    <div v-if="!dataLoaded" class="flex items-center justify-center h-full">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
     </div>
-
-    <div v-if="!submitted[currentSubTab]" class="space-y-4">
-      <div class="flex items-center justify-between text-sm text-gray-600">
-        <div>{{ currentSlideIndex + 1 }} / 4</div>
-        <div class="space-x-2">
-          <span 
-            v-for="(dot, i) in 4"
-            :key="i"
-            class="inline-block w-2 h-2 rounded-full"
-            :class="i === currentSlideIndex ? 'bg-emerald-500' : 'bg-gray-300'"
-          ></span>
-        </div>
+    <div v-else>
+      <div class="flex space-x-4 border-b mb-4 pb-2">
+        <button 
+          v-for="sub in subTabs" 
+          :key="sub.id" 
+          @click="switchSubTab(sub.id)"
+          :disabled="submitted[sub.id]"
+          :class="[
+            'px-4 py-2 text-sm font-semibold transition-colors',
+            currentSubTab === sub.id 
+              ? 'border-b-2 border-emerald-500 text-emerald-500' 
+              : 'text-gray-600 hover:text-emerald-500'
+          ]"
+        >
+          {{ sub.name }}
+        </button>
       </div>
 
-      <div class="border p-6 rounded bg-white shadow">
-        <h3 class="text-lg font-semibold mb-4">{{ currentSlide.question }}</h3>
-        <p class="text-sm text-gray-500 mb-4">Please choose one option that best fits your preference.</p>
-        <div class="grid grid-cols-2 gap-4">
-          <div 
-            v-for="(choice, cIndex) in currentSlide.choices" 
-            :key="cIndex"
-            class="border rounded p-4 flex flex-col items-center hover:shadow-lg transition cursor-pointer relative"
-            :class="{
-              'border-emerald-500 bg-emerald-50': formData[currentSubTab][currentKey] === choice.value,
-              'border-gray-200': formData[currentSubTab][currentKey] !== choice.value
-            }"
-            @click="selectChoice(currentKey, choice.value)"
-          >
-            <img :src="choice.image" alt="Choice Image" class="h-24 w-auto mb-2 object-cover rounded" />
-            <p class="font-medium text-center text-sm">{{ choice.label }}</p>
-            <div v-if="formData[currentSubTab][currentKey] === choice.value" class="absolute top-2 right-2 text-emerald-500">
-              <i class="fas fa-check-circle"></i>
+      <div v-if="!submitted[currentSubTab]" class="space-y-4">
+        <div class="flex items-center justify-between text-sm text-gray-600">
+          <div>{{ currentSlideIndex + 1 }} / 4</div>
+          <div class="space-x-2">
+            <span 
+              v-for="(dot, i) in 4"
+              :key="i"
+              class="inline-block w-2 h-2 rounded-full"
+              :class="i === currentSlideIndex ? 'bg-emerald-500' : 'bg-gray-300'"
+            ></span>
+          </div>
+        </div>
+
+        <div class="border p-6 rounded bg-white shadow">
+          <h3 class="text-lg font-semibold mb-4">{{ currentSlide.question }}</h3>
+          <p class="text-sm text-gray-500 mb-4">Please choose one option that best fits your preference.</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div 
+              v-for="(choice, cIndex) in currentSlide.choices" 
+              :key="cIndex"
+              class="border rounded p-4 flex flex-col items-center hover:shadow-lg transition cursor-pointer relative"
+              :class="{
+                'border-emerald-500 bg-emerald-50': formData[currentSubTab][currentKey] === choice.value,
+                'border-gray-200': formData[currentSubTab][currentKey] !== choice.value
+              }"
+              @click="selectChoice(currentKey, choice.value)"
+            >
+              <img :src="choice.image" alt="Choice Image" class="h-24 w-auto mb-2 object-cover rounded" />
+              <p class="font-medium text-center text-sm">{{ choice.label }}</p>
+              <div v-if="formData[currentSubTab][currentKey] === choice.value" class="absolute top-2 right-2 text-emerald-500">
+                <i class="fas fa-check-circle"></i>
+              </div>
             </div>
           </div>
         </div>
+
+        <div class="flex justify-between">
+          <button
+            v-if="currentSlideIndex > 0"
+            @click="prevSlide"
+            class="px-4 py-2 text-sm border rounded hover:bg-gray-100 text-gray-700"
+          >
+            Back
+          </button>
+          <button
+            v-if="currentSlideIndex < 3"
+            @click="nextSlide"
+            :disabled="!formData[currentSubTab][currentKey]"
+            class="px-4 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+          <button
+            v-else
+            @click="submitForm(currentSubTab)"
+            :disabled="!formData[currentSubTab][currentKey]"
+            class="px-4 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Submit
+          </button>
+        </div>
       </div>
 
-      <div class="flex justify-between">
-        <button
-          v-if="currentSlideIndex > 0"
-          @click="prevSlide"
-          class="px-4 py-2 text-sm border rounded hover:bg-gray-100 text-gray-700"
+      <div v-else class="space-y-4">
+        <h3 class="text-xl font-semibold mb-4">Submission Preview ({{ currentSubTab }})</h3>
+        <p class="text-gray-500 text-sm">Below are the options you selected. This form cannot be edited again without code changes.</p>
+        <div 
+          v-for="(slide, index) in questions[currentSubTab]" 
+          :key="index" 
+          class="border p-4 rounded bg-white shadow"
         >
-          Back
-        </button>
-        <button
-          v-if="currentSlideIndex < 3"
-          @click="nextSlide"
-          :disabled="!formData[currentSubTab][currentKey]"
-          class="px-4 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-        <button
-          v-else
-          @click="submitForm(currentSubTab)"
-          :disabled="!formData[currentSubTab][currentKey]"
-          class="px-4 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          Submit
-        </button>
-      </div>
-    </div>
-
-    <div v-else class="space-y-4">
-      <h3 class="text-xl font-semibold mb-4">Submission Preview ({{ currentSubTab }})</h3>
-      <p class="text-gray-500 text-sm">Below are the options you selected. This form cannot be edited again without code changes.</p>
-      <div 
-        v-for="(slide, index) in questions[currentSubTab]" 
-        :key="index" 
-        class="border p-4 rounded bg-white shadow"
-      >
-        <h4 class="font-medium mb-2">{{ slide.question }}</h4>
-        <div class="flex items-center space-x-4">
-          <div v-for="choice in slide.choices" :key="choice.value">
-            <div v-if="formData[currentSubTab][slide.keys[0]] === choice.value">
-              <img :src="choice.image" alt="Chosen Image" class="h-24 w-auto object-cover mb-2 rounded"/>
-              <p class="text-sm">{{ choice.label }}</p>
+          <h4 class="font-medium mb-2">{{ slide.question }}</h4>
+          <div class="flex items-center space-x-4">
+            <div v-for="choice in slide.choices" :key="choice.value">
+              <div v-if="formData[currentSubTab][slide.keys[0]] === choice.value">
+                <img :src="choice.image" alt="Chosen Image" class="h-24 w-auto object-cover mb-2 rounded"/>
+                <p class="text-sm">{{ choice.label }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -116,6 +121,8 @@ const props = defineProps({
     required: true
   }
 })
+
+const dataLoaded = ref(false)
 
 const subTabs = [
   { id: 'ui', name: 'UI' },
@@ -212,13 +219,21 @@ const submitForm = async (type) => {
 }
 
 onMounted(() => {
-  const uiSubmitted = (props.userData.ui_submitted || '').toLowerCase() === 'true'
-  const logoSubmitted = (props.userData.logo_submitted || '').toLowerCase() === 'true'
-  const bannersSubmitted = (props.userData.banners_submitted || '').toLowerCase() === 'true'
+  // Ensure userData is available and log it to verify
+  console.log('DesignTab userData:', props.userData)
 
-  submitted.ui = uiSubmitted
-  submitted.logo = logoSubmitted
-  submitted.banners = bannersSubmitted
+  // Check exactly what the sheet returns
+  // Sometimes Sheets returns "TRUE" or "True"
+  // Normalize the value:
+  const uiVal = (props.userData.ui_submitted || '').trim().toLowerCase()
+  const logoVal = (props.userData.logo_submitted || '').trim().toLowerCase()
+  const bannersVal = (props.userData.banners_submitted || '').trim().toLowerCase()
+
+  submitted.ui = (uiVal === 'true')
+  submitted.logo = (logoVal === 'true')
+  submitted.banners = (bannersVal === 'true')
+
+  dataLoaded.value = true
 })
 
 const switchSubTab = (id) => {
@@ -228,6 +243,15 @@ const switchSubTab = (id) => {
 </script>
 
 <style scoped>
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .hover\:shadow-lg:hover {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
