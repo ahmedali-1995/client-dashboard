@@ -132,10 +132,10 @@ const currentSlideIndex = ref(0)
 
 // Same questions structure as before but simplified labeling
 const choiceImages = [
-  { label: 'Choice 1', value: 'choice1', image: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Choice+1' },
-  { label: 'Choice 2', value: 'choice2', image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Choice+2' },
-  { label: 'Choice 3', value: 'choice3', image: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Choice+3' },
-  { label: 'Choice 4', value: 'choice4', image: 'https://via.placeholder.com/150/FFFF00/000000?text=Choice+4' }
+  { label: 'Choice 1', value: 'choice1', image: 'https://static.wixstatic.com/media/84b06e_726ba92470d64a0a9da12c3ee7bc1c45~mv2.png' },
+  { label: 'Choice 2', value: 'choice2', image: 'https://static.wixstatic.com/media/84b06e_eff02c97bca240769a41f8e8c09ff5ef~mv2.jpg' },
+  { label: 'Choice 3', value: 'choice3', image: 'https://static.wixstatic.com/media/84b06e_bac21fb74cc74f5d9ae0cfa7f73f8192~mv2.jpg' },
+  { label: 'Choice 4', value: 'choice4', image: 'https://static.wixstatic.com/media/84b06e_5b3d969468204df58f7a6cb5d1e5be44~mv2.jpg' }
 ]
 
 const questions = {
