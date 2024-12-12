@@ -25,8 +25,8 @@
         </div>
       </div>
 
-      <!-- If not submitted: FORM -->
-      <transition name="fade" mode="out-in">
+      <transition name="fade">
+        <!-- If not submitted: FORM -->
         <div v-if="!submitted[currentSubTab]" key="form" class="space-y-8">
           <!-- Step Indicator -->
           <div class="flex items-center justify-between text-sm font-medium text-gray-600">
@@ -55,7 +55,7 @@
             <div class="grid grid-cols-2 gap-4">
               <div 
                 v-for="(choice, cIndex) in currentSlide.choices" 
-                :key="cIndex"
+                :key="choice.value"
                 class="border rounded p-4 flex flex-col items-center transition hover:shadow-lg cursor-pointer relative hover:bg-gray-50 hover:border-emerald-300 group"
                 :class="{
                   'border-emerald-500 bg-emerald-50 scale-105 shadow-xl': formData[currentSubTab][currentKey] === choice.value,
@@ -102,10 +102,8 @@
             </button>
           </div>
         </div>
-      </transition>
 
-      <!-- If submitted: PREVIEW -->
-      <transition name="fade" mode="out-in">
+        <!-- If submitted: PREVIEW -->
         <div v-else key="preview" class="space-y-8">
           <div class="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded p-6 shadow relative overflow-hidden">
             <div class="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://via.placeholder.com/300x300?text=Preview')] bg-no-repeat bg-center"></div>
@@ -124,7 +122,7 @@
             <transition-group name="fade" tag="div" class="space-y-6">
               <div 
                 v-for="(slide, index) in questions[currentSubTab]" 
-                :key="index" 
+                :key="slide.question"
                 class="bg-white border border-gray-200 p-4 rounded shadow-sm transition hover:shadow-md"
               >
                 <h4 class="font-medium mb-2 text-gray-800 flex items-center space-x-2">
