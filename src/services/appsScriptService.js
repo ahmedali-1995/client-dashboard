@@ -1,9 +1,10 @@
-// appsScriptService.js
 import axios from 'axios';
 
 class AppsScriptService {
   constructor() {
-    this.scriptUrl = 'https://script.google.com/macros/s/AKfycbxc1J_oVKZD07d34Qr9tiV-fppbTIeKqkcR46SZWZmSIR5oDLJpeOEtzpoektZr8ASpiw/exec';
+    // Instead of the Apps Script URL, use the proxy URL:
+    this.scriptUrl = 'https://client-dashboard-nine.vercel.app/api/proxy'; 
+    // Replace with your actual Vercel domain
     this.debug = true;
   }
 
@@ -17,7 +18,7 @@ class AppsScriptService {
         },
         headers: { 'Accept': 'application/json' }
       });
-      
+
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to fetch data');
       }
