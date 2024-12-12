@@ -109,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { appsScriptService } from '@/services/appsScriptService'
 
@@ -219,8 +219,7 @@ const submitForm = async (type) => {
 }
 
 onMounted(() => {
-  console.log('DesignTab userData:', props.userData)
-
+  // Normalize the values from userData
   const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
   const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
   const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
@@ -230,6 +229,14 @@ onMounted(() => {
   submitted.banners = (bannersVal === 'true')
 
   dataLoaded.value = true
+})
+
+watch(() => currentSubTab.value, () => {
+  // Re-check submitted states to ensure buttons update properly
+  // This may help refresh the UI state if switching tabs was causing issues
+  submitted.ui = submitted.ui
+  submitted.logo = submitted.logo
+  submitted.banners = submitted.banners
 })
 
 const switchSubTab = (id) => {
