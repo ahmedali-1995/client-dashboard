@@ -10,6 +10,9 @@ export default async function handler(req, res) {
   const params = new URLSearchParams(query).toString();
   const targetUrl = params ? `${appsScriptUrl}?${params}` : appsScriptUrl;
 
+  console.log('Proxy request:', req.method, req.query, req.body);
+  console.log('Target URL:', targetUrl);
+
   if (req.method === 'OPTIONS') {
     // Handle preflight requests
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -51,5 +54,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ success: false, error: 'Proxy Error' });
   }
 }
-console.log('Proxy request:', req.method, req.query, req.body);
-console.log('Target URL:', targetUrl);
+
