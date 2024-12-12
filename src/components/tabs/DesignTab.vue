@@ -1,7 +1,6 @@
-<!-- DesignTab.vue -->
 <template>
   <div class="max-w-3xl mx-auto py-6 space-y-8 relative">
-    <div v-if="!dataLoaded" class="flex items-center justify-center h-full py-20">
+    <div v-if="!designStore.dataLoaded" class="flex items-center justify-center h-full py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
     </div>
     <div v-else>
@@ -21,7 +20,7 @@
 
       <transition name="fade">
         <!-- If not submitted: FORM -->
-        <div v-if="!submitted[currentSubTab]" key="form" class="space-y-8">
+        <div v-if="!designStore.submitted[currentSubTab]" key="form" class="space-y-8">
           <!-- Step Indicator -->
           <div class="flex items-center justify-between text-sm font-medium text-gray-600">
             <div class="flex items-center space-x-2">
@@ -52,15 +51,15 @@
                 :key="choice.value"
                 class="border rounded p-4 flex flex-col items-center transition hover:shadow-lg cursor-pointer relative hover:bg-gray-50 hover:border-emerald-300 group"
                 :class="{
-                  'border-emerald-500 bg-emerald-50 scale-105 shadow-xl': formData[currentSubTab][currentKey] === choice.value,
-                  'border-gray-200': formData[currentSubTab][currentKey] !== choice.value
+                  'border-emerald-500 bg-emerald-50 scale-105 shadow-xl': designStore.formData[currentSubTab][currentKey] === choice.value,
+                  'border-gray-200': designStore.formData[currentSubTab][currentKey] !== choice.value
                 }"
                 @click="selectChoice(currentKey, choice.value)"
               >
                 <img :src="choice.image" alt="Choice Image" class="h-24 w-auto mb-2 object-cover rounded transition-transform group-hover:scale-105" />
                 <p class="font-medium text-center text-sm text-gray-700">{{ choice.label }}</p>
                 <div 
-                  v-if="formData[currentSubTab][currentKey] === choice.value" 
+                  v-if="designStore.formData[currentSubTab][currentKey] === choice.value" 
                   class="absolute top-2 right-2 text-emerald-500"
                 >
                   <i class="fas fa-check-circle"></i>
@@ -81,7 +80,7 @@
             <button
               v-if="currentSlideIndex < 3"
               @click="nextSlide"
-              :disabled="!formData[currentSubTab][currentKey]"
+              :disabled="!designStore.formData[currentSubTab][currentKey]"
               class="px-4 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
             >
               Next
@@ -89,7 +88,7 @@
             <button
               v-else
               @click="submitForm(currentSubTab)"
-              :disabled="!formData[currentSubTab][currentKey]"
+              :disabled="!designStore.formData[currentSubTab][currentKey]"
               class="px-4 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
             >
               Submit
@@ -109,8 +108,8 @@
               Below are the options you selected. This form cannot be edited again without code changes.
             </p>
 
-            <div v-if="submissionTime[currentSubTab]" class="text-sm text-gray-500 mb-4">
-              Submitted on: {{ submissionTime[currentSubTab] }}
+            <div v-if="designStore.submissionTime[currentSubTab]" class="text-sm text-gray-500 mb-4">
+              Submitted on: {{ designStore.submissionTime[currentSubTab] }}
             </div>
             
             <transition-group name="fade" tag="div" class="space-y-6">
@@ -125,7 +124,7 @@
                 </h4>
                 <div class="flex items-start space-x-4">
                   <div v-for="choice in slide.choices" :key="choice.value">
-                    <div v-if="formData[currentSubTab][slide.keys[0]] === choice.value" class="flex items-center space-x-3">
+                    <div v-if="designStore.formData[currentSubTab][slide.keys[0]] === choice.value" class="flex items-center space-x-3">
                       <img :src="choice.image" alt="Chosen Image" class="h-16 w-auto object-cover rounded border border-gray-200"/>
                       <p class="text-sm font-medium text-gray-700">{{ choice.label }}</p>
                     </div>
@@ -164,24 +163,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { appsScriptService } from '@/services/appsScriptService'
+import { useDesignStore } from '@/stores/designStore'
 
 const authStore = useAuthStore()
+const designStore = useDesignStore()
 
 const props = defineProps({
   userData: {
     type: Object,
     required: true
   }
-})
-
-const dataLoaded = ref(false)
-const submissionTime = reactive({
-  ui: null,
-  logo: null,
-  banners: null
 })
 
 const subTabs = [
@@ -235,102 +229,92 @@ const questions = {
   ]
 }
 
-const formData = reactive({
-  ui: { ui_slide1: '', ui_slide2: '', ui_slide3: '', ui_slide4: '' },
-  logo: { logo_slide1: '', logo_slide2: '', logo_slide3: '', logo_slide4: '' },
-  banners: { banners_slide1: '', banners_slide2: '', banners_slide3: '', banners_slide4: '' }
-})
-
-const submitted = reactive({
-  ui: false,
-  logo: false,
-  banners: false
-})
-
-let isInitialized = false
-
 const currentSlide = computed(() => questions[currentSubTab.value][currentSlideIndex.value])
 const currentKey = computed(() => currentSlide.value.keys[0])
 
-const selectChoice = (key, value) => {
-  formData[currentSubTab.value][key] = value
+function selectChoice(key, value) {
+  designStore.setFormData(currentSubTab.value, key, value)
 }
 
-const nextSlide = () => {
-  if (currentSlideIndex.value < 3 && formData[currentSubTab.value][currentKey.value]) {
+function nextSlide() {
+  if (currentSlideIndex.value < 3 && designStore.formData[currentSubTab.value][currentKey.value]) {
     currentSlideIndex.value++
   }
 }
 
-const prevSlide = () => {
+function prevSlide() {
   if (currentSlideIndex.value > 0) {
     currentSlideIndex.value--
   }
 }
 
-const submitForm = async (type) => {
+async function submitForm(type) {
   const username = authStore.user?.username
   if (!username) return
-  const dataToSubmit = { ...formData[type] }
+  const dataToSubmit = { ...designStore.formData[type] }
   const response = await appsScriptService.submitDesignData(username, type, dataToSubmit)
   if (response.success) {
-    submitted[type] = true
-    submissionTime[type] = new Date().toLocaleString()
+    designStore.setSubmitted(type, true)
+    designStore.setSubmissionTime(type, new Date().toLocaleString())
   } else {
     alert('Error submitting form: ' + response.error)
   }
 }
 
-const loadSubmittedAnswers = async (type) => {
+async function loadSubmittedAnswers(type) {
   const username = authStore.user?.username
   if (!username) return
   const response = await appsScriptService.getSubmittedAnswers(username, type)
   if (response.success && response.data) {
     Object.keys(response.data).forEach(key => {
-      if (formData[type].hasOwnProperty(key)) {
-        formData[type][key] = response.data[key]
+      if (designStore.formData[type].hasOwnProperty(key)) {
+        designStore.setFormData(type, key, response.data[key])
       }
     })
-    submissionTime[type] = new Date().toLocaleString()
+    designStore.setSubmissionTime(type, new Date().toLocaleString())
   }
 }
 
 onMounted(async () => {
-  if (!isInitialized) {
+  // Check if not initialized
+  if (!designStore.isInitialized) {
     const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
     const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
     const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
 
-    submitted.ui = (uiVal === 'true')
-    submitted.logo = (logoVal === 'true')
-    submitted.banners = (bannersVal === 'true')
+    designStore.submitted.ui = (uiVal === 'true')
+    designStore.submitted.logo = (logoVal === 'true')
+    designStore.submitted.banners = (bannersVal === 'true')
 
     for (const sub of subTabs) {
-      if (submitted[sub.id]) {
+      if (designStore.submitted[sub.id]) {
         await loadSubmittedAnswers(sub.id)
       }
     }
 
-    dataLoaded.value = true
-    isInitialized = true
+    designStore.markDataLoaded()
+    designStore.markInitialized()
   } else {
     // Data was already loaded before, no need to re-fetch
-    dataLoaded.value = true
+    // Just mark dataLoaded to true if it isn't already
+    if (!designStore.dataLoaded) {
+      designStore.markDataLoaded()
+    }
   }
 })
 
-const switchSubTab = (id) => {
+function switchSubTab(id) {
   currentSubTab.value = id
   currentSlideIndex.value = 0
 }
 
-const printPreview = () => {
+function printPreview() {
   window.print()
 }
 
-const copyAnswers = () => {
+function copyAnswers() {
   const type = currentSubTab.value
-  const answers = formData[type]
+  const answers = designStore.formData[type]
   const lines = []
   for (const slide of questions[type]) {
     const answerKey = slide.keys[0]
@@ -349,6 +333,7 @@ const copyAnswers = () => {
     alert('Failed to copy answers.')
   })
 }
+
 </script>
 
 <style scoped>
