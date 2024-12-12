@@ -1,11 +1,12 @@
+<!-- DesignTab.vue -->
 <template>
   <div class="max-w-3xl mx-auto space-y-8">
-    <!-- Horizontal Sub-Tab Navigation -->
     <div class="flex space-x-4 border-b mb-4 pb-2">
       <button 
         v-for="sub in subTabs" 
         :key="sub.id" 
         @click="switchSubTab(sub.id)"
+        :disabled="submitted[sub.id]"
         :class="[
           'px-4 py-2 text-sm font-semibold transition-colors',
           currentSubTab === sub.id 
@@ -17,7 +18,6 @@
       </button>
     </div>
 
-    <!-- If not submitted, show a single slide at a time -->
     <div v-if="!submitted[currentSubTab]" class="space-y-4">
       <div class="flex items-center justify-between text-sm text-gray-600">
         <div>{{ currentSlideIndex + 1 }} / 4</div>
@@ -54,7 +54,6 @@
         </div>
       </div>
 
-      <!-- Navigation buttons -->
       <div class="flex justify-between">
         <button
           v-if="currentSlideIndex > 0"
@@ -82,10 +81,9 @@
       </div>
     </div>
 
-    <!-- If submitted, show the preview -->
     <div v-else class="space-y-4">
       <h3 class="text-xl font-semibold mb-4">Submission Preview ({{ currentSubTab }})</h3>
-      <p class="text-gray-500 text-sm">Below are the options you selected:</p>
+      <p class="text-gray-500 text-sm">Below are the options you selected. This form cannot be edited again without code changes.</p>
       <div 
         v-for="(slide, index) in questions[currentSubTab]" 
         :key="index" 
@@ -101,23 +99,14 @@
           </div>
         </div>
       </div>
-
-      <div class="mt-4">
-        <button
-          @click="resetForm(currentSubTab)"
-          class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
-        >
-          Start Over
-        </button>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { appsScriptService } from '@/services/appsScriptService'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { appsScriptService } from '@/services/appsScriptService'
 
 const authStore = useAuthStore()
 
@@ -130,102 +119,52 @@ const subTabs = [
 const currentSubTab = ref('ui')
 const currentSlideIndex = ref(0)
 
-// Same questions structure as before but simplified labeling
-const choiceImages = [
-  { label: 'Choice 1', value: 'choice1', image: 'https://static.wixstatic.com/media/84b06e_726ba92470d64a0a9da12c3ee7bc1c45~mv2.png' },
-  { label: 'Choice 2', value: 'choice2', image: 'https://static.wixstatic.com/media/84b06e_eff02c97bca240769a41f8e8c09ff5ef~mv2.jpg' },
-  { label: 'Choice 3', value: 'choice3', image: 'https://static.wixstatic.com/media/84b06e_bac21fb74cc74f5d9ae0cfa7f73f8192~mv2.jpg' },
-  { label: 'Choice 4', value: 'choice4', image: 'https://static.wixstatic.com/media/84b06e_5b3d969468204df58f7a6cb5d1e5be44~mv2.jpg' }
+const choiceImagesUI = [
+  { label: 'Modern', value: 'ui_modern', image: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Modern' },
+  { label: 'Minimal', value: 'ui_minimal', image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Minimal' },
+  { label: 'Bold', value: 'ui_bold', image: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Bold' },
+  { label: 'Classic', value: 'ui_classic', image: 'https://via.placeholder.com/150/FFFF00/000000?text=Classic' }
+]
+
+const choiceImagesLogo = [
+  { label: 'Abstract', value: 'logo_abstract', image: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Abstract' },
+  { label: 'Geometric', value: 'logo_geometric', image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Geometric' },
+  { label: 'Iconic', value: 'logo_iconic', image: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Iconic' },
+  { label: 'Typographic', value: 'logo_typographic', image: 'https://via.placeholder.com/150/FFFF00/000000?text=Typographic' }
+]
+
+const choiceImagesBanners = [
+  { label: 'Hero Image', value: 'banner_hero', image: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Hero' },
+  { label: 'Promotional', value: 'banner_promo', image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Promo' },
+  { label: 'Seasonal', value: 'banner_seasonal', image: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Seasonal' },
+  { label: 'Minimalist', value: 'banner_minimalist', image: 'https://via.placeholder.com/150/FFFF00/000000?text=Minimalist' }
 ]
 
 const questions = {
   ui: [
-    { 
-      question: 'What UI style do you prefer?',
-      keys: ['ui_slide1'],
-      choices: choiceImages
-    },
-    { 
-      question: 'Choose your primary color scheme:',
-      keys: ['ui_slide2'],
-      choices: choiceImages
-    },
-    {
-      question: 'Select your preferred layout style:',
-      keys: ['ui_slide3'],
-      choices: choiceImages
-    },
-    {
-      question: 'Select your preferred font style:',
-      keys: ['ui_slide4'],
-      choices: choiceImages
-    }
+    { question: 'What UI style do you prefer?', keys: ['ui_slide1'], choices: choiceImagesUI },
+    { question: 'Choose your primary color scheme:', keys: ['ui_slide2'], choices: choiceImagesUI },
+    { question: 'Select your preferred layout style:', keys: ['ui_slide3'], choices: choiceImagesUI },
+    { question: 'Select your preferred font style:', keys: ['ui_slide4'], choices: choiceImagesUI }
   ],
   logo: [
-    {
-      question: 'Select the logo style you like most:',
-      keys: ['logo_slide1'],
-      choices: choiceImages
-    },
-    {
-      question: 'Choose a color combination for your logo:',
-      keys: ['logo_slide2'],
-      choices: choiceImages
-    },
-    {
-      question: 'Pick a shape that resonates with your brand:',
-      keys: ['logo_slide3'],
-      choices: choiceImages
-    },
-    {
-      question: 'Select a font style for your logo text:',
-      keys: ['logo_slide4'],
-      choices: choiceImages
-    }
+    { question: 'Select the logo style you like most:', keys: ['logo_slide1'], choices: choiceImagesLogo },
+    { question: 'Choose a color combination for your logo:', keys: ['logo_slide2'], choices: choiceImagesLogo },
+    { question: 'Pick a shape that resonates with your brand:', keys: ['logo_slide3'], choices: choiceImagesLogo },
+    { question: 'Select a font style for your logo text:', keys: ['logo_slide4'], choices: choiceImagesLogo }
   ],
   banners: [
-    {
-      question: 'Choose a banner layout style:',
-      keys: ['banners_slide1'],
-      choices: choiceImages
-    },
-    {
-      question: 'Pick the primary banner image concept:',
-      keys: ['banners_slide2'],
-      choices: choiceImages
-    },
-    {
-      question: 'Select a banner color palette:',
-      keys: ['banners_slide3'],
-      choices: choiceImages
-    },
-    {
-      question: 'Choose a call-to-action style for the banner:',
-      keys: ['banners_slide4'],
-      choices: choiceImages
-    }
+    { question: 'Choose a banner layout style:', keys: ['banners_slide1'], choices: choiceImagesBanners },
+    { question: 'Pick the primary banner image concept:', keys: ['banners_slide2'], choices: choiceImagesBanners },
+    { question: 'Select a banner color palette:', keys: ['banners_slide3'], choices: choiceImagesBanners },
+    { question: 'Choose a call-to-action style for the banner:', keys: ['banners_slide4'], choices: choiceImagesBanners }
   ]
 }
 
 const formData = reactive({
-  ui: {
-    ui_slide1: '',
-    ui_slide2: '',
-    ui_slide3: '',
-    ui_slide4: ''
-  },
-  logo: {
-    logo_slide1: '',
-    logo_slide2: '',
-    logo_slide3: '',
-    logo_slide4: ''
-  },
-  banners: {
-    banners_slide1: '',
-    banners_slide2: '',
-    banners_slide3: '',
-    banners_slide4: ''
-  }
+  ui: { ui_slide1: '', ui_slide2: '', ui_slide3: '', ui_slide4: '' },
+  logo: { logo_slide1: '', logo_slide2: '', logo_slide3: '', logo_slide4: '' },
+  banners: { banners_slide1: '', banners_slide2: '', banners_slide3: '', banners_slide4: '' }
 })
 
 const submitted = reactive({
@@ -256,8 +195,6 @@ const prevSlide = () => {
 const submitForm = async (type) => {
   const username = authStore.user?.username
   if (!username) return
-
-  // Ensure all slides have been answered
   const dataToSubmit = { ...formData[type] }
   const response = await appsScriptService.submitDesignData(username, type, dataToSubmit)
   if (response.success) {
@@ -267,19 +204,26 @@ const submitForm = async (type) => {
   }
 }
 
-const resetForm = (type) => {
-  Object.keys(formData[type]).forEach(key => {
-    formData[type][key] = ''
-  })
-  submitted[type] = false
-  currentSlideIndex.value = 0
-}
+onMounted(() => {
+  // userData passed as prop from Dashboard.vue
+  // userData contains ui_submitted, logo_submitted, banners_submitted
+  // convert them from string to boolean
+  submitted.ui = (props.userData.ui_submitted === 'true')
+  submitted.logo = (props.userData.logo_submitted === 'true')
+  submitted.banners = (props.userData.banners_submitted === 'true')
+})
+
+const props = defineProps({
+  userData: {
+    type: Object,
+    required: true
+  }
+})
 
 const switchSubTab = (id) => {
   currentSubTab.value = id
   currentSlideIndex.value = 0
 }
-
 </script>
 
 <style scoped>
