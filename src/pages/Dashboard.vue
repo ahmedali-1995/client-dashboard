@@ -364,8 +364,8 @@ const handleLogout = () => {
 }
   onMounted(async () => {
   const username = authStore.user?.username
-  if (username && !designStore.dataLoaded) {
-    await designStore.fetchAllSubmittedAnswers(username)
+  if (username && !designStore.isInitialized) {
+    await designStore.fetchDesignData(username)
   }
 })
 
