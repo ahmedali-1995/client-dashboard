@@ -1,3 +1,4 @@
+<!-- src/components/DesignTab.vue -->
 <template>
   <div class="max-w-3xl mx-auto py-6 space-y-8 relative">
     <div v-if="!designStore.dataLoaded" class="flex items-center justify-center h-full py-20">
@@ -163,20 +164,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'  // <- Make sure onMounted is included
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { appsScriptService } from '@/services/appsScriptService'
 import { useDesignStore } from '@/stores/designStore'
 
 const authStore = useAuthStore()
 const designStore = useDesignStore()
-
-const props = defineProps({
-  userData: {
-    type: Object,
-    required: true
-  }
-})
 
 const subTabs = [
   { id: 'ui', name: 'UI' },
@@ -188,10 +181,10 @@ const currentSubTab = ref('ui')
 const currentSlideIndex = ref(0)
 
 const choiceImagesUI = [
-  { label: 'Modern', value: 'ui_modern', image: 'https://static.wixstatic.com/media/84b06e_bac21fb74cc74f5d9ae0cfa7f73f8192~mv2.jpg' },
-  { label: 'Minimal', value: 'ui_minimal', image: 'https://static.wixstatic.com/media/84b06e_726ba92470d64a0a9da12c3ee7bc1c45~mv2.png' },
-  { label: 'Bold', value: 'ui_bold', image: 'https://static.wixstatic.com/media/84b06e_eff02c97bca240769a41f8e8c09ff5ef~mv2.jpg' },
-  { label: 'Classic', value: 'ui_classic', image: 'https://static.wixstatic.com/media/84b06e_5b3d969468204df58f7a6cb5d1e5be44~mv2.jpg' }
+  { label: 'Modern', value: 'ui_modern', image: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Modern' },
+  { label: 'Minimal', value: 'ui_minimal', image: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Minimal' },
+  { label: 'Bold', value: 'ui_bold', image: 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Bold' },
+  { label: 'Classic', value: 'ui_classic', image: 'https://via.placeholder.com/150/FFFF00/000000?text=Classic' }
 ]
 
 const choiceImagesLogo = [
@@ -261,48 +254,6 @@ async function submitForm(type) {
   }
 }
 
-async function loadSubmittedAnswers(type) {
-  const username = authStore.user?.username
-  if (!username) return
-  const response = await appsScriptService.getSubmittedAnswers(username, type)
-  if (response.success && response.data) {
-    Object.keys(response.data).forEach(key => {
-      if (designStore.formData[type].hasOwnProperty(key)) {
-        designStore.setFormData(type, key, response.data[key])
-      }
-    })
-    designStore.setSubmissionTime(type, new Date().toLocaleString())
-  }
-}
-
-onMounted(async () => {
-  // Check if not initialized
-  if (!designStore.isInitialized) {
-    const uiVal = String(props.userData.ui_submitted || '').toLowerCase()
-    const logoVal = String(props.userData.logo_submitted || '').toLowerCase()
-    const bannersVal = String(props.userData.banners_submitted || '').toLowerCase()
-
-    designStore.submitted.ui = (uiVal === 'true')
-    designStore.submitted.logo = (logoVal === 'true')
-    designStore.submitted.banners = (bannersVal === 'true')
-
-    for (const sub of subTabs) {
-      if (designStore.submitted[sub.id]) {
-        await loadSubmittedAnswers(sub.id)
-      }
-    }
-
-    designStore.markDataLoaded()
-    designStore.markInitialized()
-  } else {
-    // Data was already loaded before, no need to re-fetch
-    // Just mark dataLoaded to true if it isn't already
-    if (!designStore.dataLoaded) {
-      designStore.markDataLoaded()
-    }
-  }
-})
-
 function switchSubTab(id) {
   currentSubTab.value = id
   currentSlideIndex.value = 0
@@ -333,7 +284,6 @@ function copyAnswers() {
     alert('Failed to copy answers.')
   })
 }
-
 </script>
 
 <style scoped>
