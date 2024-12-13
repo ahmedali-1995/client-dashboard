@@ -288,10 +288,10 @@
         </div>
         
         <div v-else>
-          <component 
+          <keep-alive><component 
             :is="currentComponent" 
             :userData="userData"
-          />
+          /></keep-alive>
         </div>
       </div>
     </div>
