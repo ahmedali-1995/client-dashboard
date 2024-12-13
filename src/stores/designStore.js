@@ -1,10 +1,11 @@
 // src/stores/designStore.js
 import { defineStore } from 'pinia'
-import { appsScriptService } from '@/services/appsScriptService'
+import { appsScriptService } from '@/services/appsScriptService' // Ensure correct path
 
 export const useDesignStore = defineStore('design', {
   state: () => ({
     dataLoaded: false,
+    isInitialized: false,
     submissionTime: {
       ui: null,
       logo: null,
@@ -26,45 +27,38 @@ export const useDesignStore = defineStore('design', {
       this.submitted[type] = value
     },
     setFormData(type, key, value) {
-      if (this.formData[type]) {
-        this.formData[type][key] = value
-      }
+      this.formData[type][key] = value
     },
     setSubmissionTime(type, time) {
       this.submissionTime[type] = time
     },
+    markInitialized() {
+      this.isInitialized = true
+    },
     markDataLoaded() {
       this.dataLoaded = true
     },
-    async loadSubmittedAnswers(username, type) {
-      const response = await appsScriptService.getSubmittedAnswers(username, type)
-      if (response.success && response.data) {
-        Object.keys(response.data).forEach(key => {
-          if (this.formData[type].hasOwnProperty(key)) {
-            this.formData[type][key] = response.data[key]
+    async fetchDesignData(username) {
+      try {
+        const types = ['ui', 'logo', 'banners']
+        for (const type of types) {
+          const response = await appsScriptService.getSubmittedAnswers(username, type)
+          if (response.success && response.data) {
+            Object.keys(response.data).forEach(key => {
+              if (this.formData[type].hasOwnProperty(key)) {
+                this.formData[type][key] = response.data[key]
+              }
+            })
+            this.setSubmitted(type, true)
+            // Assuming the response includes submission time; if not, set it manually
+            this.setSubmissionTime(type, new Date().toLocaleString())
           }
-        })
-        this.submissionTime[type] = new Date().toLocaleString()
-      }
-    },
-    async fetchAllSubmittedAnswers(username) {
-      const types = ['ui', 'logo', 'banners']
-      for (const type of types) {
-        if (this.submitted[type]) {
-          await this.loadSubmittedAnswers(username, type)
         }
+        this.markDataLoaded()
+        this.markInitialized()
+      } catch (error) {
+        console.error('Error fetching design data:', error)
       }
-      this.markDataLoaded()
-    },
-    async submitDesignData(username, type, dataToSubmit) {
-      const response = await appsScriptService.submitDesignData(username, type, dataToSubmit)
-      if (response.success) {
-        this.submitted[type] = true
-        this.submissionTime[type] = new Date().toLocaleString()
-        // Optionally, update formData with the submitted data
-        this.formData[type] = { ...dataToSubmit }
-      }
-      return response
     }
   }
 })
