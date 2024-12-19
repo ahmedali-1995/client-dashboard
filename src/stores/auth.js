@@ -1,4 +1,3 @@
-// auth.js
 import { defineStore } from 'pinia'
 import { appsScriptService } from '@/services/appsScriptService'
 
