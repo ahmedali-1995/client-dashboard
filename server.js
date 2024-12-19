@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
-import googleRouter from './api/google.js';
+import googleRouter from './api/proxy.js';
 import cookieParser from 'cookie-parser';
 
 // ES modules fix for __dirname
