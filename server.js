@@ -19,7 +19,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Replace with your Hostinger domain (ensure HTTPS)
-const HOSTINGER_DOMAIN = 'https://your-hostinger-site.com'; // e.g., https://www.example.com
+const HOSTINGER_DOMAIN = 'https://jaridatakhbarak.com'; // e.g., https://www.example.com
 
 // CORS Configuration
 app.use(cors({
