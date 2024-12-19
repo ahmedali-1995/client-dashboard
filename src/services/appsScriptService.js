@@ -5,14 +5,20 @@ class AppsScriptService {
   constructor() {
     this.scriptUrl = 'https://client-dashboard-nine.vercel.app/api/proxy'; 
     this.debug = true;
+
+    // Create an Axios instance with credentials
+    this.axiosInstance = axios.create({
+      baseURL: this.scriptUrl,
+      withCredentials: true, // Allow sending cookies
+      headers: { 'Accept': 'application/json' },
+    });
   }
 
   async getUserData(username) {
     try {
       if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`);
-      const response = await axios.get(this.scriptUrl, {
+      const response = await this.axiosInstance.get('/', {
         params: { username, t: new Date().getTime() },
-        headers: { 'Accept': 'application/json' }
       });
 
       if (!response.data.success) {
@@ -28,9 +34,8 @@ class AppsScriptService {
   async getTasks(username) {
     try {
       if (this.debug) console.log(`[AppsScriptService] Fetching tasks for username: ${username}`);
-      const response = await axios.get(this.scriptUrl, {
+      const response = await this.axiosInstance.get('/', {
         params: { username, action: 'getTasks', t: new Date().getTime() },
-        headers: { 'Accept': 'application/json' }
       });
       return response.data;
     } catch (error) {
@@ -42,9 +47,8 @@ class AppsScriptService {
   async testConnection() {
     try {
       if (this.debug) console.log('[AppsScriptService] Testing connection...');
-      const response = await axios.get(this.scriptUrl, {
+      const response = await this.axiosInstance.get('/', {
         params: { t: new Date().getTime() },
-        headers: { 'Accept': 'application/json' }
       });
       return { success: true, message: response.data.message || 'Connection successful' };
     } catch (error) {
@@ -56,9 +60,8 @@ class AppsScriptService {
   async validateUser(username, password) {
     try {
       if (this.debug) console.log('[AppsScriptService] Validating user:', username);
-      const response = await axios.get(this.scriptUrl, {
+      const response = await this.axiosInstance.get('/', {
         params: { username, password, action: 'validate' },
-        headers: { 'Accept': 'application/json' }
       });
       return response.data;
     } catch (error) {
@@ -70,13 +73,11 @@ class AppsScriptService {
   async submitDesignData(username, designType, formData) {
     try {
       if (this.debug) console.log(`[AppsScriptService] Submitting ${designType} design data for ${username}`);
-      const response = await axios.post(this.scriptUrl, {
+      const response = await this.axiosInstance.post('/', {
         username,
         action: 'submitDesignData',
         designType,
         formData
-      }, {
-        headers: { 'Accept': 'application/json' }
       });
       return response.data;
     } catch (error) {
@@ -88,9 +89,8 @@ class AppsScriptService {
   async getSubmittedAnswers(username, designType) {
     try {
       if (this.debug) console.log(`[AppsScriptService] Getting submitted answers for ${username}, type: ${designType}`);
-      const response = await axios.get(this.scriptUrl, {
+      const response = await this.axiosInstance.get('/', {
         params: { username, action: 'getSubmittedAnswers', designType, t: new Date().getTime() },
-        headers: { 'Accept': 'application/json' }
       });
       return response.data;
     } catch (error) {
