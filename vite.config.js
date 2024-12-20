@@ -21,6 +21,17 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    rollupOptions: {
+      external: ['chart.js'],
+      output: {
+        globals: {
+          'chart.js': 'Chart'
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    include: ['chart.js', 'vue-chartjs']
   }
 })
