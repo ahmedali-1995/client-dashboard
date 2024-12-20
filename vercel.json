@@ -46,7 +46,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://jaridatakhbarak.com"  // Replace with your actual domain
+          "value": "https://jaridatakhbarak.com"
         },
         {
           "key": "Access-Control-Allow-Methods",
