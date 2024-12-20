@@ -5,7 +5,6 @@ import App from './App.vue'
 import router from './router'
 import './style.css'
 import './assets/css/theme.css'
-import './plugins/chart' // Add this line
 import { googleService } from './services/googleService'
 import { useAuthStore } from './stores/auth'
 
