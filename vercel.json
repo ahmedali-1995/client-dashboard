@@ -46,7 +46,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://your-hostinger-domain.com"  // Replace with your actual domain
+          "value": "https://jaridatakhbarak.com"  // Replace with your actual domain
         },
         {
           "key": "Access-Control-Allow-Methods",
