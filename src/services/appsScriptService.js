@@ -98,6 +98,31 @@ class AppsScriptService {
       return { success: false, error: error.message };
     }
   }
+
+  // Add this new method for search data
+  async getSearchData(username) {
+    try {
+      if (this.debug) console.log(`[AppsScriptService] Fetching search data for username: ${username}`);
+      const response = await axios.get(this.scriptUrl, {
+        params: { 
+          username, 
+          action: 'getSearchData',
+          t: new Date().getTime() 
+        },
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to fetch search data');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('[AppsScriptService] Error fetching search data:', error);
+      throw error;
+    }
+  }
+
 }
 
 export const appsScriptService = new AppsScriptService();
