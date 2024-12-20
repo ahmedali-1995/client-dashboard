@@ -126,18 +126,18 @@ import { ref, onMounted, computed } from 'vue';
 import { useThemeStore } from '@/stores/themeStore';
 import { useAuthStore } from '@/stores/auth';
 import { appsScriptService } from '@/services/appsScriptService';
-import { Line as LineChart, Doughnut as DoughnutChart } from 'vue-chartjs';
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
   Title,
   Tooltip,
   Legend,
+  LineElement,
+  LinearScale,
+  CategoryScale,
+  PointElement,
   ArcElement
 } from 'chart.js';
+import { Line, Doughnut } from 'vue-chartjs';
 
 // Register ChartJS components
 ChartJS.register(
@@ -151,6 +151,7 @@ ChartJS.register(
   ArcElement
 );
 
+// Component setup
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
 
