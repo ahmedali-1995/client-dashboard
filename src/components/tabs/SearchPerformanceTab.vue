@@ -37,8 +37,26 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-red-500 text-center py-8">
-        {{ error }}
+      <div v-else-if="error" class="rounded-xl p-8 text-center" :class="themeStore.isDark ? 'bg-[#1A1A35]' : 'bg-white'">
+        <div class="text-red-500 mb-4">
+          <i class="fas fa-exclamation-circle text-4xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-2" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+          Unable to Load Data
+        </h3>
+        <p class="text-gray-500 mb-4">{{ error }}</p>
+        <button 
+          @click="fetchData"
+          class="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+
+      <!-- Empty State for Tables -->
+      <div v-if="topQueries.length === 0 && !loading && !error" 
+           class="text-center py-8 text-gray-500">
+        No query data available for the selected period
       </div>
 
       <!-- Content -->
@@ -193,7 +211,21 @@ const gscOverview = ref([])
 const gscQueries = ref([])
 const gscPages = ref([])
 const gscDevices = ref([])
-const gscCountries = ref([])
+const gscCountries = ref([]
+
+// Utility functions to safely parse numbers
+const safeParseFloat = (value) => {
+  if (value === undefined || value === null || value === '') return 0
+  const parsed = parseFloat(value)
+  return isNaN(parsed) ? 0 : parsed
+}
+
+const safeGetPercentage = (value) => {
+  if (typeof value === 'string' && value.includes('%')) {
+    return safeParseFloat(value.replace('%', ''))
+  }
+  return safeParseFloat(value)
+}
 
 // Fetch data
 const fetchData = async () => {
@@ -203,17 +235,27 @@ const fetchData = async () => {
     
     const response = await appsScriptService.getSearchPerformanceData(authStore.user.username)
     if (response.success) {
+      // Ensure we have arrays even if the data is empty
       gscOverview.value = response.data.overview || []
       gscQueries.value = response.data.queries || []
       gscPages.value = response.data.pages || []
       gscDevices.value = response.data.devices || []
       gscCountries.value = response.data.countries || []
+      
+      // Log the data for debugging
+      console.log('Fetched search data:', {
+        overview: gscOverview.value,
+        queries: gscQueries.value,
+        pages: gscPages.value,
+        devices: gscDevices.value,
+        countries: gscCountries.value
+      })
     } else {
       throw new Error(response.error || 'Failed to fetch data')
     }
   } catch (err) {
     console.error('Error fetching search data:', err)
-    error.value = err.message
+    error.value = 'Failed to load search performance data. Please try again later.'
   } finally {
     loading.value = false
   }
@@ -227,32 +269,32 @@ const overviewMetrics = computed(() => {
   return [
     {
       label: 'Total Clicks',
-      value: lastDay.Clicks || 0,
-      trend: calculateTrend(lastDay.Clicks, prevDay.Clicks),
+      value: safeParseFloat(lastDay.Clicks) || 0,
+      trend: calculateTrend(safeParseFloat(lastDay.Clicks), safeParseFloat(prevDay.Clicks)),
       icon: 'fas fa-mouse-pointer',
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-500/10'
     },
     {
       label: 'Total Impressions',
-      value: lastDay.Impressions || 0,
-      trend: calculateTrend(lastDay.Impressions, prevDay.Impressions),
+      value: safeParseFloat(lastDay.Impressions) || 0,
+      trend: calculateTrend(safeParseFloat(lastDay.Impressions), safeParseFloat(prevDay.Impressions)),
       icon: 'fas fa-eye',
       iconColor: 'text-green-500',
       bgColor: 'bg-green-500/10'
     },
     {
       label: 'Average CTR',
-      value: `${(lastDay.CTR || 0).toFixed(2)}%`,
-      trend: calculateTrend(parseFloat(lastDay.CTR), parseFloat(prevDay.CTR)),
+      value: `${(safeGetPercentage(lastDay.CTR) || 0).toFixed(2)}%`,
+      trend: calculateTrend(safeGetPercentage(lastDay.CTR), safeGetPercentage(prevDay.CTR)),
       icon: 'fas fa-percentage',
       iconColor: 'text-purple-500',
       bgColor: 'bg-purple-500/10'
     },
     {
       label: 'Average Position',
-      value: (lastDay.Position || 0).toFixed(1),
-      trend: calculateTrend(lastDay.Position, prevDay.Position, true),
+      value: (safeParseFloat(lastDay.Position) || 0).toFixed(1),
+      trend: calculateTrend(safeParseFloat(lastDay.Position), safeParseFloat(prevDay.Position), true),
       icon: 'fas fa-chart-line',
       iconColor: 'text-orange-500',
       bgColor: 'bg-orange-500/10'
@@ -266,14 +308,14 @@ const clicksImpressionsData = computed(() => ({
   datasets: [
     {
       label: 'Clicks',
-      data: gscOverview.value.map(day => day.Clicks).reverse(),
+      data: gscOverview.value.map(day => safeParseFloat(day.Clicks)).reverse(),
       borderColor: '#3b82f6',
       backgroundColor: '#3b82f680',
       tension: 0.4
     },
     {
       label: 'Impressions',
-      data: gscOverview.value.map(day => day.Impressions).reverse(),
+      data: gscOverview.value.map(day => safeParseFloat(day.Impressions)).reverse(),
       borderColor: '#10b981',
       backgroundColor: '#10b98180',
       tension: 0.4
@@ -286,7 +328,7 @@ const ctrPositionData = computed(() => ({
   datasets: [
     {
       label: 'CTR (%)',
-      data: gscOverview.value.map(day => parseFloat(day.CTR)).reverse(),
+      data: gscOverview.value.map(day => safeGetPercentage(day.CTR)).reverse(),
       borderColor: '#8b5cf6',
       backgroundColor: '#8b5cf680',
       tension: 0.4,
@@ -294,7 +336,7 @@ const ctrPositionData = computed(() => ({
     },
     {
       label: 'Position',
-      data: gscOverview.value.map(day => day.Position).reverse(),
+      data: gscOverview.value.map(day => safeParseFloat(day.Position)).reverse(),
       borderColor: '#f59e0b',
       backgroundColor: '#f59e0b80',
       tension: 0.4,
@@ -305,19 +347,28 @@ const ctrPositionData = computed(() => ({
 
 // Top queries
 const topQueries = computed(() => {
-  return gscQueries.value
-    .sort((a, b) => b.Clicks - a.Clicks)
+  return (gscQueries.value || [])
+    .filter(query => query && query.Query) // Filter out invalid entries
+    .map(query => ({
+      query: query.Query,
+      clicks: safeParseFloat(query.Clicks),
+      impressions: safeParseFloat(query.Impressions),
+      ctr: safeGetPercentage(query.CTR),
+      position: safeParseFloat(query.Position)
+    }))
+    .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 10)
 })
 
 // Device distribution
 const deviceData = computed(() => {
-  const deviceStats = gscDevices.value.reduce((acc, curr) => {
+  const deviceStats = (gscDevices.value || []).reduce((acc, curr) => {
+    if (!curr || !curr.Device) return acc
     if (!acc[curr.Device]) {
       acc[curr.Device] = { clicks: 0, impressions: 0 }
     }
-    acc[curr.Device].clicks += curr.Clicks
-    acc[curr.Device].impressions += curr.Impressions
+    acc[curr.Device].clicks += safeParseFloat(curr.Clicks)
+    acc[curr.Device].impressions += safeParseFloat(curr.Impressions)
     return acc
   }, {})
 
@@ -332,12 +383,13 @@ const deviceData = computed(() => {
 
 // Country distribution
 const countryData = computed(() => {
-  const countryStats = gscCountries.value.reduce((acc, curr) => {
+  const countryStats = (gscCountries.value || []).reduce((acc, curr) => {
+    if (!curr || !curr.Country) return acc
     if (!acc[curr.Country]) {
       acc[curr.Country] = { clicks: 0, impressions: 0 }
     }
-    acc[curr.Country].clicks += curr.Clicks
-    acc[curr.Country].impressions += curr.Impressions
+    acc[curr.Country].clicks += safeParseFloat(curr.Clicks)
+    acc[curr.Country].impressions += safeParseFloat(curr.Impressions)
     return acc
   }, {})
 
@@ -361,6 +413,15 @@ const chartOptions = computed(() => ({
   },
   scales: {
     y: {
+      beginAtZero: true,
+      grid: {
+        color: themeStore.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+      },
+      ticks: {
+        color: themeStore.isDark ? '#94a3b8' : '#475569'
+      }
+    },
+    y1: {
       beginAtZero: true,
       grid: {
         color: themeStore.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -431,7 +492,12 @@ const barChartOptions = computed(() => ({
 
 // Utility functions
 const calculateTrend = (current, previous, inverse = false) => {
-  if (!current || !previous) return 0
+  current = safeParseFloat(current)
+  previous = safeParseFloat(previous)
+  
+  if (current === 0 && previous === 0) return 0
+  if (previous === 0) return current > 0 ? 100 : -100
+  
   const trend = ((current - previous) / previous) * 100
   return inverse ? -trend : trend
 }
