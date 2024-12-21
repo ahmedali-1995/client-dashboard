@@ -127,7 +127,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Chart, registerables } from 'chart.js'
+import { Chart, registerables } from 'chart.js/auto'  // Change this import
 import { useAuthStore } from '@/stores/auth'
 import { appsScriptService } from '@/services/appsScriptService'
 
