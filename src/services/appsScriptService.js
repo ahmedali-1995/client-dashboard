@@ -7,27 +7,18 @@ class AppsScriptService {
     this.debug = true;
   }
 
-  // Add this method to the existing AppsScriptService class
-  async getUserData(username, options = {}) {
+  async getUserData(username) {
     try {
-      if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`, options);
-      
-      const params = {
-        username,
-        t: new Date().getTime(),
-        ...options
-      };
-
+      if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`);
       const response = await axios.get(this.scriptUrl, {
-        params,
+        params: { username, t: new Date().getTime() },
         headers: { 'Accept': 'application/json' }
       });
 
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to fetch data');
       }
-      
-      return response.data;
+      return { success: true, data: response.data.data };
     } catch (error) {
       console.error('[AppsScriptService] Error:', error);
       return { success: false, error: error.message };
@@ -105,6 +96,32 @@ class AppsScriptService {
     } catch (error) {
       console.error('[AppsScriptService] getSubmittedAnswers error:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // Add this method to your existing appsScriptService class
+  async getSheetData(username, sheetName) {
+    try {
+      if (this.debug) console.log(`[AppsScriptService] Fetching sheet data for ${username}, sheet: ${sheetName}`);
+      
+      const response = await axios.get(this.scriptUrl, {
+        params: {
+          username,
+          action: 'getSheetData',
+          sheetName,
+          t: new Date().getTime()
+        },
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to fetch sheet data');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('[AppsScriptService] Error fetching sheet data:', error);
+      return { success: false, error: error.message, data: [] };
     }
   }
 }
