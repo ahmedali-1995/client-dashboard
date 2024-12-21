@@ -202,7 +202,7 @@ const authStore = useAuthStore()
 
 const loading = ref(true)
 const error = ref(null)
-const selectedDateRange = ref('30')
+const selectedDateRange = ref('30') // Default to 30 days
 
 // Data states
 const gscOverview = ref([])
@@ -230,8 +230,9 @@ const fetchData = async () => {
   try {
     loading.value = true
     error.value = null
-    
-    const response = await appsScriptService.getSearchPerformanceData(authStore.user.username)
+
+    const days = parseInt(selectedDateRange.value, 10)
+    const response = await appsScriptService.getSearchPerformanceData(authStore.user.username, days)
     if (response.success) {
       // Ensure we have arrays even if the data is empty
       gscOverview.value = response.data.overview || []
@@ -261,38 +262,49 @@ const fetchData = async () => {
 
 // Overview metrics
 const overviewMetrics = computed(() => {
-  const lastDay = gscOverview.value[0] || {}
-  const prevDay = gscOverview.value[1] || {}
-  
+  // Sum metrics over the selected date range
+  const totalClicks = gscOverview.value.reduce((sum, day) => sum + safeParseFloat(day.Clicks), 0)
+  const totalImpressions = gscOverview.value.reduce((sum, day) => sum + safeParseFloat(day.Impressions), 0)
+  const averageCTR = gscOverview.value.length > 0 
+    ? (gscOverview.value.reduce((sum, day) => sum + safeGetPercentage(day.CTR), 0) / gscOverview.value.length).toFixed(2)
+    : '0.00'
+  const averagePosition = gscOverview.value.length > 0 
+    ? (gscOverview.value.reduce((sum, day) => sum + safeParseFloat(day.Position), 0) / gscOverview.value.length).toFixed(1)
+    : '0.0'
+
+  // For trend calculation, you might need to fetch data for the previous period
+  // This requires additional logic or a separate API call
+  // For simplicity, we'll set trend to 0.00%
+
   return [
     {
       label: 'Total Clicks',
-      value: safeParseFloat(lastDay.Clicks) || 0,
-      trend: calculateTrend(safeParseFloat(lastDay.Clicks), safeParseFloat(prevDay.Clicks)),
+      value: totalClicks,
+      trend: 0.00, // Placeholder
       icon: 'fas fa-mouse-pointer',
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-500/10'
     },
     {
       label: 'Total Impressions',
-      value: safeParseFloat(lastDay.Impressions) || 0,
-      trend: calculateTrend(safeParseFloat(lastDay.Impressions), safeParseFloat(prevDay.Impressions)),
+      value: totalImpressions,
+      trend: 0.00, // Placeholder
       icon: 'fas fa-eye',
       iconColor: 'text-green-500',
       bgColor: 'bg-green-500/10'
     },
     {
       label: 'Average CTR',
-      value: `${(safeGetPercentage(lastDay.CTR) || 0).toFixed(2)}%`,
-      trend: calculateTrend(safeGetPercentage(lastDay.CTR), safeGetPercentage(prevDay.CTR)),
+      value: `${averageCTR}%`,
+      trend: 0.00, // Placeholder
       icon: 'fas fa-percentage',
       iconColor: 'text-purple-500',
       bgColor: 'bg-purple-500/10'
     },
     {
       label: 'Average Position',
-      value: (safeParseFloat(lastDay.Position) || 0).toFixed(1),
-      trend: calculateTrend(safeParseFloat(lastDay.Position), safeParseFloat(prevDay.Position), true),
+      value: averagePosition,
+      trend: 0.00, // Placeholder
       icon: 'fas fa-chart-line',
       iconColor: 'text-orange-500',
       bgColor: 'bg-orange-500/10'
