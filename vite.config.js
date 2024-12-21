@@ -23,15 +23,16 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     rollupOptions: {
-      external: ['chart.js'],
+      external: [],
       output: {
-        globals: {
-          'chart.js': 'Chart'
+        manualChunks: {
+          'chart': ['chart.js', 'vue-chartjs'],
+          'vendor': ['vue', '@vue/runtime-dom', 'pinia', 'vue-router']
         }
       }
     }
   },
   optimizeDeps: {
-    include: ['chart.js']
+    include: ['chart.js', 'vue-chartjs', 'date-fns']
   }
 })
