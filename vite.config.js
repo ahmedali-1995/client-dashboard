@@ -32,6 +32,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['chart.js', 'vue-chartjs']
+    include: ['chart.js']
   }
 })
