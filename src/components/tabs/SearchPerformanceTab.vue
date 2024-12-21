@@ -194,7 +194,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { useThemeStore } from '@/stores/themeStore'
 import { useAuthStore } from '@/stores/auth'
 import { appsScriptService } from '@/services/appsScriptService'
-import { format, subDays, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement)
@@ -211,7 +211,7 @@ const gscOverview = ref([])
 const gscQueries = ref([])
 const gscPages = ref([])
 const gscDevices = ref([])
-const gscCountries = ref([]
+const gscCountries = ref([]) // Fixed the syntax here
 
 // Utility functions to safely parse numbers
 const safeParseFloat = (value) => {
