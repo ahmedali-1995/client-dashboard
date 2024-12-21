@@ -7,6 +7,7 @@ import './style.css'
 import './assets/css/theme.css'
 import { googleService } from './services/googleService'
 import { useAuthStore } from './stores/auth'
+import Chart from './plugins/chart'  // Add this import
 
 // Create the app instance
 const app = createApp(App)
@@ -23,8 +24,9 @@ app.use(router)
 const authStore = useAuthStore(pinia)
 authStore.initAuth()
 
-// Make service available globally
+// Make services and Chart globally available
 app.config.globalProperties.$googleService = googleService
+app.config.globalProperties.$chart = Chart
 
 // Mount the app
 app.mount('#app')
