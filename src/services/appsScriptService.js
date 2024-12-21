@@ -99,29 +99,21 @@ class AppsScriptService {
     }
   }
 
-  // Add this method to your existing appsScriptService class
-  async getSheetData(username, sheetName) {
+  async getSearchPerformanceData(username) {
     try {
-      if (this.debug) console.log(`[AppsScriptService] Fetching sheet data for ${username}, sheet: ${sheetName}`);
-      
+      if (this.debug) console.log(`[AppsScriptService] Fetching search performance data for ${username}`);
       const response = await axios.get(this.scriptUrl, {
-        params: {
-          username,
-          action: 'getSheetData',
-          sheetName,
-          t: new Date().getTime()
+        params: { 
+          username, 
+          action: 'getSearchData',
+          t: new Date().getTime() 
         },
         headers: { 'Accept': 'application/json' }
       });
-
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to fetch sheet data');
-      }
-
       return response.data;
     } catch (error) {
-      console.error('[AppsScriptService] Error fetching sheet data:', error);
-      return { success: false, error: error.message, data: [] };
+      console.error('[AppsScriptService] Error fetching search data:', error);
+      return { success: false, error: error.message };
     }
   }
 }
