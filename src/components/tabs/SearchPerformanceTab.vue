@@ -86,11 +86,9 @@
                 'text-sm',
                 metric.trend > 0 ? 'text-green-500' : 'text-red-500'
               ]">
-                {{ Math.abs(metric.trend) }}%
+                {{ Math.abs(metric.trend).toFixed(2) }}%
               </span>
-              <span class="text-xs" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
-                vs previous period
-              </span>
+              <!-- Removed the "vs previous period" text -->
             </div>
           </div>
         </div>
@@ -152,7 +150,7 @@
                     {{ query.impressions }}
                   </td>
                   <td class="px-6 py-4 text-sm" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-900'">
-                    {{ query.ctr }}%
+                    {{ query.ctr.toFixed(2) }}%
                   </td>
                   <td class="px-6 py-4 text-sm" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-900'">
                     {{ query.position.toFixed(1) }}
