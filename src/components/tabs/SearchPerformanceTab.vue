@@ -1,125 +1,122 @@
 <template>
-  <div class="p-4 space-y-6">
-    <!-- Overview Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div 
-        v-for="(metric, index) in overviewMetrics" 
-        :key="index"
-        class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md flex items-center space-x-4"
-      >
+  <div class="p-4 space-y-6" :class="themeStore.isDark ? 'text-white' : 'text-gray-800'">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex justify-center items-center min-h-[400px]">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-red-500 text-center py-8">
+      {{ error }}
+    </div>
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Overview Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div 
-          class="w-12 h-12 rounded-full flex items-center justify-center"
-          :class="metric.bgClass"
+          v-for="(stat, index) in stats" 
+          :key="index"
+          class="p-4 rounded-lg"
+          :class="themeStore.isDark ? 'bg-[#1A1A35]' : 'bg-white shadow'"
         >
-          <i :class="metric.icon" class="text-white text-xl"></i>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ metric.label }}</p>
-          <h3 class="text-xl font-bold text-gray-800 dark:text-white">{{ metric.value }}</h3>
-        </div>
-      </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Clicks & Impressions Chart -->
-      <div class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Clicks & Impressions Over Time
-        </h3>
-        <canvas ref="clicksImpressionsChart" height="300"></canvas>
-      </div>
-
-      <!-- CTR & Position Chart -->
-      <div class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          CTR & Average Position
-        </h3>
-        <canvas ref="ctrPositionChart" height="300"></canvas>
-      </div>
-    </div>
-
-    <!-- Detailed Tables -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Top Queries -->
-      <div class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Top Search Queries
-        </h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b dark:border-gray-700">
-                <th class="py-2 text-left">Query</th>
-                <th class="py-2 text-right">Clicks</th>
-                <th class="py-2 text-right">Impressions</th>
-                <th class="py-2 text-right">CTR</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="query in topQueries" 
-                :key="query.Query" 
-                class="border-b last:border-b-0 dark:border-gray-700"
-              >
-                <td class="py-2 truncate max-w-[150px]">{{ query.Query }}</td>
-                <td class="py-2 text-right">{{ query.Clicks }}</td>
-                <td class="py-2 text-right">{{ query.Impressions }}</td>
-                <td class="py-2 text-right">{{ query.CTR }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="flex items-center space-x-3">
+            <div 
+              class="w-12 h-12 rounded-lg flex items-center justify-center"
+              :class="stat.bgColor"
+            >
+              <i :class="['fas', stat.icon, 'text-xl text-white']"></i>
+            </div>
+            <div>
+              <p class="text-sm opacity-70">{{ stat.label }}</p>
+              <p class="text-xl font-bold">{{ stat.value }}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Top Pages -->
-      <div class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Top Performing Pages
-        </h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b dark:border-gray-700">
-                <th class="py-2 text-left">Page</th>
-                <th class="py-2 text-right">Clicks</th>
-                <th class="py-2 text-right">Impressions</th>
-                <th class="py-2 text-right">CTR</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="page in topPages" 
-                :key="page.Page" 
-                class="border-b last:border-b-0 dark:border-gray-700"
-              >
-                <td class="py-2 truncate max-w-[150px]">{{ page.Page }}</td>
-                <td class="py-2 text-right">{{ page.Clicks }}</td>
-                <td class="py-2 text-right">{{ page.Impressions }}</td>
-                <td class="py-2 text-right">{{ page.CTR }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- Performance Over Time -->
+        <div 
+          class="p-4 rounded-lg"
+          :class="themeStore.isDark ? 'bg-[#1A1A35]' : 'bg-white shadow'"
+        >
+          <h3 class="text-lg font-semibold mb-4">Performance Over Time</h3>
+          <div class="h-[300px] relative">
+            <canvas ref="performanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Device Distribution -->
+        <div 
+          class="p-4 rounded-lg"
+          :class="themeStore.isDark ? 'bg-[#1A1A35]' : 'bg-white shadow'"
+        >
+          <h3 class="text-lg font-semibold mb-4">Device Distribution</h3>
+          <div class="h-[300px] relative">
+            <canvas ref="deviceChart"></canvas>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Device & Country Breakdown -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Device Performance -->
-      <div class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Performance by Device
-        </h3>
-        <canvas ref="deviceChart" height="300"></canvas>
-      </div>
+      <!-- Data Tables -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- Top Queries -->
+        <div 
+          class="p-4 rounded-lg"
+          :class="themeStore.isDark ? 'bg-[#1A1A35]' : 'bg-white shadow'"
+        >
+          <h3 class="text-lg font-semibold mb-4">Top Search Queries</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="text-left">
+                  <th class="pb-3">Query</th>
+                  <th class="pb-3 text-right">Clicks</th>
+                  <th class="pb-3 text-right">Impressions</th>
+                  <th class="pb-3 text-right">CTR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="query in topQueries" :key="query.Query">
+                  <td class="py-2">{{ query.Query }}</td>
+                  <td class="py-2 text-right">{{ query.Clicks }}</td>
+                  <td class="py-2 text-right">{{ query.Impressions }}</td>
+                  <td class="py-2 text-right">{{ query.CTR }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      <!-- Country Performance -->
-      <div class="bg-white dark:bg-[#1A1A35] rounded-xl p-4 shadow-md">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Performance by Country
-        </h3>
-        <canvas ref="countryChart" height="300"></canvas>
+        <!-- Top Pages -->
+        <div 
+          class="p-4 rounded-lg"
+          :class="themeStore.isDark ? 'bg-[#1A1A35]' : 'bg-white shadow'"
+        >
+          <h3 class="text-lg font-semibold mb-4">Top Pages</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="text-left">
+                  <th class="pb-3">Page</th>
+                  <th class="pb-3 text-right">Clicks</th>
+                  <th class="pb-3 text-right">Impressions</th>
+                  <th class="pb-3 text-right">CTR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="page in topPages" :key="page.Page">
+                  <td class="py-2">{{ page.Page }}</td>
+                  <td class="py-2 text-right">{{ page.Clicks }}</td>
+                  <td class="py-2 text-right">{{ page.Impressions }}</td>
+                  <td class="py-2 text-right">{{ page.CTR }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -127,22 +124,19 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Chart, registerables } from 'chart.js/auto'  // Change this import
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/themeStore'
 import { appsScriptService } from '@/services/appsScriptService'
 
-// Register Chart.js components
-Chart.register(...registerables)
-
-const authStore = useAuthStore()
-
-// Refs for charts
-const clicksImpressionsChart = ref(null)
-const ctrPositionChart = ref(null)
+// State
+const loading = ref(true)
+const error = ref(null)
+const performanceChart = ref(null)
 const deviceChart = ref(null)
-const countryChart = ref(null)
+const authStore = useAuthStore()
+const themeStore = useThemeStore()
 
-// Data state
+// Data
 const gscData = ref({
   overview: [],
   queries: [],
@@ -151,38 +145,38 @@ const gscData = ref({
   countries: []
 })
 
-// Computed properties for overview metrics
-const overviewMetrics = computed(() => {
-  const overview = gscData.value.overview[0] || {}
+// Stats cards data
+const stats = computed(() => {
+  const latest = gscData.value.overview[0] || {}
   return [
     {
       label: 'Total Clicks',
-      value: overview.Clicks || 0,
-      icon: 'fas fa-mouse-pointer',
-      bgClass: 'bg-blue-500'
+      value: latest.Clicks || 0,
+      icon: 'fa-mouse-pointer',
+      bgColor: 'bg-blue-500'
     },
     {
-      label: 'Total Impressions',
-      value: overview.Impressions || 0,
-      icon: 'fas fa-eye',
-      bgClass: 'bg-green-500'
+      label: 'Impressions',
+      value: latest.Impressions || 0,
+      icon: 'fa-eye',
+      bgColor: 'bg-green-500'
     },
     {
-      label: 'CTR',
-      value: overview.CTR || '0%',
-      icon: 'fas fa-chart-line',
-      bgClass: 'bg-purple-500'
+      label: 'Average CTR',
+      value: latest.CTR || '0%',
+      icon: 'fa-percentage',
+      bgColor: 'bg-purple-500'
     },
     {
-      label: 'Avg. Position',
-      value: overview.Position ? overview.Position.toFixed(2) : 0,
-      icon: 'fas fa-trophy',
-      bgClass: 'bg-orange-500'
+      label: 'Average Position',
+      value: latest.Position?.toFixed(1) || 0,
+      icon: 'fa-chart-line',
+      bgColor: 'bg-orange-500'
     }
   ]
 })
 
-// Computed properties for top data
+// Computed properties for tables
 const topQueries = computed(() => {
   return gscData.value.queries
     .sort((a, b) => b.Clicks - a.Clicks)
@@ -195,15 +189,20 @@ const topPages = computed(() => {
     .slice(0, 5)
 })
 
-// Fetch GSC data
-async function fetchGSCData() {
-  const username = authStore.user?.username
-  if (!username) return
-
+// Fetch data
+async function fetchData() {
   try {
+    loading.value = true
+    error.value = null
+    
+    const username = authStore.user?.username
+    if (!username) {
+      throw new Error('No user found')
+    }
+
     const sheets = ['gsc overview', 'gsc queries', 'gsc pages', 'gsc devices', 'gsc countries']
     const promises = sheets.map(sheet => 
-      appsScriptService.getUserData(username, { action: 'getSheetData', sheetName: sheet })
+      appsScriptService.getSheetData(username, sheet)
     )
 
     const results = await Promise.all(promises)
@@ -216,107 +215,126 @@ async function fetchGSCData() {
       countries: results[4].data || []
     }
 
-    // Create charts after data is fetched
-    createCharts()
-  } catch (error) {
-    console.error('Error fetching GSC data:', error)
+    await initCharts()
+  } catch (err) {
+    console.error('Error fetching data:', err)
+    error.value = 'Failed to load search performance data'
+  } finally {
+    loading.value = false
   }
 }
 
-// Chart creation function
-function createCharts() {
-  // Clicks & Impressions Chart
-  new Chart(clicksImpressionsChart.value, {
-    type: 'line',
-    data: {
-      labels: gscData.value.overview.map(row => row.Date),
-      datasets: [
-        {
-          label: 'Clicks',
-          data: gscData.value.overview.map(row => row.Clicks),
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
-        },
-        {
-          label: 'Impressions',
-          data: gscData.value.overview.map(row => row.Impressions),
-          borderColor: 'rgb(255, 99, 132)',
-          tension: 0.1
-        }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  })
-
-  // CTR & Position Chart
-  new Chart(ctrPositionChart.value, {
-    type: 'line',
-    data: {
-      labels: gscData.value.overview.map(row => row.Date),
-      datasets: [
-        {
-          label: 'CTR',
-          data: gscData.value.overview.map(row => parseFloat(row.CTR)),
-          borderColor: 'rgb(54, 162, 235)',
-          tension: 0.1
-        },
-        {
-          label: 'Position',
-          data: gscData.value.overview.map(row => row.Position),
-          borderColor: 'rgb(255, 206, 86)',
-          tension: 0.1
-        }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  })
-
-  // Device Performance Chart
-  new Chart(deviceChart.value, {
-    type: 'pie',
-    data: {
-      labels: gscData.value.devices.map(row => row.Device),
-      datasets: [{
-        data: gscData.value.devices.map(row => row.Clicks),
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.8)',
-          'rgba(54, 162, 235, 0.8)',
-          'rgba(255, 206, 86, 0.8)'
+// Initialize charts
+async function initCharts() {
+  // We'll dynamically import Chart.js only when needed
+  const { Chart } = await import('chart.js/auto')
+  
+  // Performance Chart
+  if (performanceChart.value) {
+    new Chart(performanceChart.value, {
+      type: 'line',
+      data: {
+        labels: gscData.value.overview.map(d => d.Date).reverse(),
+        datasets: [
+          {
+            label: 'Clicks',
+            data: gscData.value.overview.map(d => d.Clicks).reverse(),
+            borderColor: '#3b82f6',
+            tension: 0.4
+          },
+          {
+            label: 'Impressions',
+            data: gscData.value.overview.map(d => d.Impressions).reverse(),
+            borderColor: '#10b981',
+            tension: 0.4
+          }
         ]
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  })
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: themeStore.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    })
+  }
 
-  // Country Performance Chart
-  new Chart(countryChart.value, {
-    type: 'bar',
-    data: {
-      labels: gscData.value.countries.map(row => row.Country),
-      datasets: [{
-        label: 'Clicks by Country',
-        data: gscData.value.countries.map(row => row.Clicks),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)'
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  })
+  // Device Chart
+  if (deviceChart.value) {
+    new Chart(deviceChart.value, {
+      type: 'doughnut',
+      data: {
+        labels: gscData.value.devices.map(d => d.Device),
+        datasets: [{
+          data: gscData.value.devices.map(d => d.Clicks),
+          backgroundColor: [
+            '#3b82f6',
+            '#10b981',
+            '#8b5cf6'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    })
+  }
 }
 
-onMounted(fetchGSCData)
+// Initialize
+onMounted(() => {
+  fetchData()
+})
 </script>
 
 <style scoped>
-/* Responsive table styles */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Table styles */
 table {
   width: 100%;
   border-collapse: collapse;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  table {
-    color: white;
-  }
+th, td {
+  padding: 0.5rem;
+}
+
+tbody tr {
+  border-bottom: 1px solid;
+  @apply border-gray-200 dark:border-gray-700;
+}
+
+tbody tr:last-child {
+  border-bottom: none;
 }
 </style>
