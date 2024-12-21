@@ -7,18 +7,27 @@ class AppsScriptService {
     this.debug = true;
   }
 
-  async getUserData(username) {
+  // Add this method to the existing AppsScriptService class
+  async getUserData(username, options = {}) {
     try {
-      if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`);
+      if (this.debug) console.log(`[AppsScriptService] Fetching data for username: ${username}`, options);
+      
+      const params = {
+        username,
+        t: new Date().getTime(),
+        ...options
+      };
+
       const response = await axios.get(this.scriptUrl, {
-        params: { username, t: new Date().getTime() },
+        params,
         headers: { 'Accept': 'application/json' }
       });
 
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to fetch data');
       }
-      return { success: true, data: response.data.data };
+      
+      return response.data;
     } catch (error) {
       console.error('[AppsScriptService] Error:', error);
       return { success: false, error: error.message };
